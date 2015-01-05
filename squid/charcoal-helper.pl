@@ -17,6 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
 
+use IO::Socket::INET;
+
 $|=1; #Flush after write
 
 my $DEBUG = 1;
@@ -34,7 +36,13 @@ if ( @ARGV != 1){
 ## Server: charcoal.hopbox.in
 ## Port  : 80
 ##
+my $charcoal_server = 'hopbox.in';
+my $charcoal_port   = '80';
+my $proto           = 'tcp';
+my $timeout         = 30;
+
 my $apikey = shift @ARGV;
+
 
 #For each requested URL, the rewriter will receive on line with the format
 #
@@ -75,6 +83,16 @@ my $apikey = shift @ARGV;
 
 
 while(<>){
+	my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
+					PeerPort   => $charcoal_port,
+					Proto	   => $proto,
+					Timeout	   => $timeout,
+					MultiHomed => 1,
+					Blocking   => 1,
+				) || die ("Error connecting to charcoal server: $!\n");
+
+	print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
+
 	chomp;
 	print STDERR "RAW: $_\n" if $DEBUG;
 	my @chunks = split(/\s+/);
@@ -85,14 +103,19 @@ while(<>){
 	### Concurrency enabled
 		print STDERR "Concurrency Enabled\n" if $DEBUG;
 		my ($chan, $url, $clientip, $ident, $method, $blah, $proxyip, $proxyport) = split(/\s+/);
-		print "$chan OK\n";
-		print STDERR "$chan OK\n" if $DEBUG;
+		$sock->print("$apikey|$clientip|$ident|$method|$blah|$url");
+		my $res = $chan . ' ' . $sock->getline();
+		print "$res\n";
+		print STDERR "$res\n" if $DEBUG;
 	}
 	else {
 	### Concurrency disabled
 		print STDERR "Concurrency Disabled\n" if $DEBUG;
-		print "OK\n";
-		print STDERR "OK\n" if $DEBUG;
+		my ($url, $clientip, $ident, $method, $blah, $proxyip, $proxyport) = split(/\s+/);
+		$sock->send("$apikey|$clientip|$ident|$method|$blah|$url");
+		my $res = $sock->getline();
+		print "$res\n";
+		print STDERR "$res\n" if $DEBUG;
 	}
 
 }
