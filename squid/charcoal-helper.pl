@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w -s
 #
 # Charcoal - URL Re-Director/Re-writer for Squid
 # Copyright (C) 2012 Nishant Sharma <codemarauder@gmail.com>
@@ -21,13 +21,20 @@ use IO::Socket::INET;
 
 $|=1; #Flush after write
 
-my $DEBUG = 1;
+my $DEBUG = 1 if $d;
 
 # ARGUMENTS REQUIRED
 # 1. API Key
 
-if ( @ARGV != 1){
-	print STDERR "Usage: $0 <api-key>\n";
+if ($h){
+	print STDERR "Usage:\t$0 [-dh] <api-key>\n";
+	print STDERR "\t$0 -d <api-key>\t: send debug messages to STDERR\n";
+	print STDERR "\t$0 -h\t\t\t: print this message\n";
+	exit 0;
+}
+
+if ( @ARGV < 1){
+	print STDERR "BH message=Usage: $0 <api-key>\n";
 	exit 1;
 }
 
@@ -89,7 +96,7 @@ while(<>){
 					Timeout	   => $timeout,
 					MultiHomed => 1,
 					Blocking   => 1,
-				) || die ("Error connecting to charcoal server: $!\n");
+				) || (print STDERR "BH message=Error connecting to charcoal server $!\n" && die);
 
 	print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
 
