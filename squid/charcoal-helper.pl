@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -s
+#!/usr/bin/perl -s
 #
 # Charcoal - URL Re-Director/Re-writer for Squid
 # Copyright (C) 2012 Nishant Sharma <codemarauder@gmail.com>
@@ -49,6 +49,8 @@ my $proto           = 'tcp';
 my $timeout         = 30;
 
 my $apikey = shift @ARGV;
+
+print STDERR "Received API KEY $apikey\n";
 
 
 #For each requested URL, the rewriter will receive on line with the format
@@ -101,7 +103,9 @@ while(<>){
 	print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
 
 	chomp;
+
 	print STDERR "RAW: $_\n" if $DEBUG;
+
 	my @chunks = split(/\s+/);
 
 	print STDERR scalar(@chunks) . " chunks received \n";
