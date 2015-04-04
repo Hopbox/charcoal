@@ -1,4 +1,4 @@
-[% META title = 'Catalyst/Bootstrap TT View' %]
+[% META title = 'Charcoal' %]
 <div class="jumbotron">
       <div class="container"><img style="float: right;" src="/static/images/catalyst_logo.png">
         <h1>Welcome to Catalyst world!</h1>

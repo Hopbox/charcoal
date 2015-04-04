@@ -12,8 +12,8 @@
 
    # define a data structure to hold sitewide data
    site = {
-     title     => 'Catalyst::View::Bootstrap Example Page',
-     copyright => '2015 Your Name Here',
+     title     => 'Charcoal',
+     copyright => '2015 Unmukti Technology Pvt Ltd',
    };
 
    # load up any other configuration items

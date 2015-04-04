@@ -20,7 +20,7 @@
 #     LICENSE => q[perl]
 #     NAME => q[Charcoal]
 #     NO_META => q[1]
-#     PREREQ_PM => { Catalyst::Action::RenderView=>q[0], Catalyst::Authentication::Store::MongoDB=>q[0], Catalyst::Model::MongoDB=>q[0], Catalyst::Plugin::Cache::FastMmap=>q[0], Catalyst::Plugin::ConfigLoader=>q[0], Catalyst::Plugin::Static::Simple=>q[0], Catalyst::Runtime=>q[5.90079], Catalyst::View::Bootstrap=>q[0], Config::General=>q[0], ExtUtils::MakeMaker=>q[6.36], Moose=>q[0], Plack=>q[0], Starman=>q[0], Test::More=>q[0.88], namespace::autoclean=>q[0] }
+#     PREREQ_PM => { Catalyst::Action::RenderView=>q[0], Catalyst::Authentication::Store::MongoDB=>q[0], Catalyst::Model::MongoDB=>q[0], Catalyst::Plugin::Cache::FastMmap=>q[0], Catalyst::Plugin::ConfigLoader=>q[0], Catalyst::Plugin::Static::Simple=>q[0], Catalyst::Runtime=>q[5.90079], Config::General=>q[0], ExtUtils::MakeMaker=>q[6.36], Moose=>q[0], Plack=>q[0], Starman=>q[0], Test::More=>q[0.88], namespace::autoclean=>q[0] }
 #     TEST_REQUIRES => {  }
 #     VERSION => q[0.01]
 #     VERSION_FROM => q[lib/Charcoal.pm]
@@ -473,20 +473,20 @@ manifypods : pure_all  \
 
 EXE_FILES = script/charcoal_cgi.pl script/charcoal_create.pl script/charcoal_fastcgi.pl script/charcoal_server.pl script/charcoal_test.pl
 
-pure_all :: $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_test.pl $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_create.pl $(INST_SCRIPT)/charcoal_fastcgi.pl
+pure_all :: $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_test.pl $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_create.pl $(INST_SCRIPT)/charcoal_fastcgi.pl
 	$(NOECHO) $(NOOP)
 
 realclean ::
 	$(RM_F) \
-	  $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_test.pl \
-	  $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_create.pl \
+	  $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_test.pl \
+	  $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_create.pl \
 	  $(INST_SCRIPT)/charcoal_fastcgi.pl 
 
-$(INST_SCRIPT)/charcoal_cgi.pl : script/charcoal_cgi.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_cgi.pl
-	$(CP) script/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_cgi.pl
-	$(FIXIN) $(INST_SCRIPT)/charcoal_cgi.pl
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_cgi.pl
+$(INST_SCRIPT)/charcoal_server.pl : script/charcoal_server.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_server.pl
+	$(CP) script/charcoal_server.pl $(INST_SCRIPT)/charcoal_server.pl
+	$(FIXIN) $(INST_SCRIPT)/charcoal_server.pl
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_server.pl
 
 $(INST_SCRIPT)/charcoal_test.pl : script/charcoal_test.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_test.pl
@@ -494,11 +494,11 @@ $(INST_SCRIPT)/charcoal_test.pl : script/charcoal_test.pl $(FIRST_MAKEFILE) $(IN
 	$(FIXIN) $(INST_SCRIPT)/charcoal_test.pl
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_test.pl
 
-$(INST_SCRIPT)/charcoal_server.pl : script/charcoal_server.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_server.pl
-	$(CP) script/charcoal_server.pl $(INST_SCRIPT)/charcoal_server.pl
-	$(FIXIN) $(INST_SCRIPT)/charcoal_server.pl
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_server.pl
+$(INST_SCRIPT)/charcoal_cgi.pl : script/charcoal_cgi.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_cgi.pl
+	$(CP) script/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_cgi.pl
+	$(FIXIN) $(INST_SCRIPT)/charcoal_cgi.pl
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_cgi.pl
 
 $(INST_SCRIPT)/charcoal_create.pl : script/charcoal_create.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_create.pl
@@ -563,7 +563,7 @@ realclean purge ::  clean realclean_subdirs
 	- $(RM_F) \
 	  $(FIRST_MAKEFILE) $(MAKEFILE_OLD) 
 	- $(RM_RF) \
-	  $(DISTVNAME) MYMETA.yml 
+	  MYMETA.yml $(DISTVNAME) 
 
 
 # --- MakeMaker metafile section:
@@ -878,7 +878,6 @@ ppd :
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Plugin::ConfigLoader" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Plugin::Static::Simple" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Runtime" VERSION="5.90079" />' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::View::Bootstrap" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Config::General" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Moose::" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Plack::" />' >> $(DISTNAME).ppd
@@ -938,20 +937,20 @@ checkdeps ::
 	$(PERL) Makefile.PL --checkdeps
 
 installdeps ::
-	$(PERL) Makefile.PL --config= --installdeps=Catalyst::View::Bootstrap,0
+	$(NOECHO) $(NOOP)
 
 installdeps_notest ::
-	$(PERL) Makefile.PL --config=notest,1 --installdeps=Catalyst::View::Bootstrap,0
+	$(NOECHO) $(NOOP)
 
 upgradedeps ::
-	$(PERL) Makefile.PL --config= --upgradedeps=Catalyst::View::Bootstrap,0,Test::More,0.88,Catalyst::Runtime,5.90079,Catalyst::Plugin::ConfigLoader,0,Catalyst::Plugin::Static::Simple,0,Catalyst::Action::RenderView,0,Catalyst::Model::MongoDB,0,Catalyst::Plugin::Cache::FastMmap,0,Catalyst::Authentication::Store::MongoDB,0,Moose,0,namespace::autoclean,0,Config::General,0,Plack,0,Starman,0
+	$(PERL) Makefile.PL --config= --upgradedeps=Test::More,0.88,Catalyst::Runtime,5.90079,Catalyst::Plugin::ConfigLoader,0,Catalyst::Plugin::Static::Simple,0,Catalyst::Action::RenderView,0,Catalyst::Model::MongoDB,0,Catalyst::Plugin::Cache::FastMmap,0,Catalyst::Authentication::Store::MongoDB,0,Moose,0,namespace::autoclean,0,Config::General,0,Plack,0,Starman,0
 
 upgradedeps_notest ::
-	$(PERL) Makefile.PL --config=notest,1 --upgradedeps=Catalyst::View::Bootstrap,0,Test::More,0.88,Catalyst::Runtime,5.90079,Catalyst::Plugin::ConfigLoader,0,Catalyst::Plugin::Static::Simple,0,Catalyst::Action::RenderView,0,Catalyst::Model::MongoDB,0,Catalyst::Plugin::Cache::FastMmap,0,Catalyst::Authentication::Store::MongoDB,0,Moose,0,namespace::autoclean,0,Config::General,0,Plack,0,Starman,0
+	$(PERL) Makefile.PL --config=notest,1 --upgradedeps=Test::More,0.88,Catalyst::Runtime,5.90079,Catalyst::Plugin::ConfigLoader,0,Catalyst::Plugin::Static::Simple,0,Catalyst::Action::RenderView,0,Catalyst::Model::MongoDB,0,Catalyst::Plugin::Cache::FastMmap,0,Catalyst::Authentication::Store::MongoDB,0,Moose,0,namespace::autoclean,0,Config::General,0,Plack,0,Starman,0
 
 listdeps ::
-	@$(PERL) -le "print for @ARGV" Catalyst::View::Bootstrap
+	@$(PERL) -le "print for @ARGV" 
 
 listalldeps ::
-	@$(PERL) -le "print for @ARGV" Catalyst::View::Bootstrap Test::More Catalyst::Runtime Catalyst::Plugin::ConfigLoader Catalyst::Plugin::Static::Simple Catalyst::Action::RenderView Catalyst::Model::MongoDB Catalyst::Plugin::Cache::FastMmap Catalyst::Authentication::Store::MongoDB Moose namespace::autoclean Config::General Plack Starman
+	@$(PERL) -le "print for @ARGV" Test::More Catalyst::Runtime Catalyst::Plugin::ConfigLoader Catalyst::Plugin::Static::Simple Catalyst::Action::RenderView Catalyst::Model::MongoDB Catalyst::Plugin::Cache::FastMmap Catalyst::Authentication::Store::MongoDB Moose namespace::autoclean Config::General Plack Starman
 
