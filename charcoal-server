@@ -2,12 +2,22 @@
 
 package charcoal_server;
 
+$| = 1;
+
 use strict;
 use warnings;
 
 use strict;
 use Cwd;
 use DBI;
+use DBD::Pg;
+die "This program requires DBD::Pg version >= 3.5.0" unless $DBD::Pg::VERSION >= 3.5.0;
+use JSON::XS;
+use NetAddr::IP;
+
+
+# Set or unset DEBUG mode
+my $DEBUG = 1;
 
 # The AutoCommit attribute should always be explicitly set
 use DBD::Pg qw(:pg_types :async);
@@ -18,12 +28,9 @@ my $pgdbuser = 'charcoal';
 my $pgdbpass = 'charcoa1pa55';
 my $pgdbport = 5433;
 
-use MongoDB;
-use MongoDB::OID;
+our $dbh;
 
-use Redis;
-
-use base qw(Net::Server::PreFork);
+use base qw(Net::Server::Fork);
 
 my $server = __PACKAGE__->new({
                     'log_level'   =>  4,
@@ -36,19 +43,8 @@ my $server = __PACKAGE__->new({
                     'group'       =>  'nogroup',
                 });
 
-### Get MongoDB connection
-my $conn = MongoDB::MongoClient->new( host => 'tunnelr2.hopbox.in:27017') or die "Could not connect to MongoDB: $!\n";
-my $db = $conn->get_database('charcoal');
-
-### Get Redis connection
-my $redis = Redis->new( server => 'tunnelr3.hopbox.in:6379' ) or die "Could not connect to Redis: $!\n";
-
-### Get PG DB Connection
-my $dbh = DBI->connect("dbi:Pg:dbname=$pgdbname;host=$pgdbhost;port=$pgdbport;", $pgdbuser, $pgdbpass, {AutoCommit => 1, RaiseError => 1});
-
-### Start accepting the connection
+print STDERR "Accepting connections on port 6603...\n";
 $server->run;
-
 
 sub process_request {
 
@@ -65,6 +61,7 @@ sub process_request {
             s/\r?\n$//;
             my $result = check_acl($_);
             print $result;
+            $self->disconnect;
             alarm($timeout);
         }
 
@@ -77,33 +74,219 @@ sub process_request {
     }
 }
 
+sub post_accept_hook {
+    connect_db();
+}
+
+
+sub post_process_request {
+    print STDERR "Disconnecting from DB\n";
+    $dbh->disconnect;
+}
+
+
+sub connect_db {
+
+    my $self = shift;
+
+    print STDERR "Connecting to database $pgdbname on $pgdbhost:$pgdbport...";
+
+    ### Get PG DB Connection
+    $dbh = DBI->connect("dbi:Pg:dbname=$pgdbname;host=$pgdbhost;port=$pgdbport;", $pgdbuser, $pgdbpass, {AutoCommit => 1, RaiseError => 1, InactiveDestroy => 1});
+    print STDERR " done\n";
+
+#    return $dbh;
+
+}
+ 
 sub check_acl {
 
     my $msg = shift;
+    print STDERR "Got MSG: " . $msg . "\n" if $DEBUG;
+    print STDERR "Connecting to database $pgdbname on $pgdbhost:$pgdbport...";
+
+    my ($api, $srcip, $ident, $method, $blah, $url) = split(/\|/, $msg);
+
+    my $sql = qq{ SELECT id FROM customers where api = ? };
+    my $sth = $dbh->prepare($sql);
+    $sth->execute($api);
+
+    my ($customer, $custid);
+    $sth->bind_columns(\$customer);
+    while ($sth->fetch){
+            print STDERR "CUST ID: $customer\n" if $DEBUG;
+            $custid = $customer;
+    }
+    $sth->finish;
+
+    print STDERR "Customer ID for API Key \'$api\': $custid\n" if $DEBUG;
+
+    my $dst = $url;
+    $dst =~ s/http:\/\///;
+    $dst =~ s/\ //g; ### Strip off spaces
+
+    print STDERR "Getting categories for destination $dst.\n";
+
+    my $glsql = qq{ SELECT category FROM gl_dom_cat WHERE domain IN (SELECT id FROM domains WHERE domain = ?) };
+    my $csql = qq { SELECT category FROM c_dom_cat WHERE domain IN (SELECT id FROM c_domains WHERE customer = ? and domain = ?)};
+
+    $sth = $dbh->prepare($glsql);
+    my ($category, @categories);
+    $sth->execute($dst);
+    $sth->bind_columns(\$category);
+    while ($sth->fetch()){
+            print STDERR "Found global category $category for destination $dst\n" if $DEBUG;
+            push @categories, $category;
+        }
+
+    $sth->finish;
+
+    $sth = $dbh->prepare($csql);
+    $sth->execute($custid, $dst);
+    $sth->bind_columns(\$category);
+    while ($sth->fetch()){
+            print STDERR "Found customer category $category for destination $dst\n" if $DEBUG;
+            push @categories, $category;
+        }   
+
+    $sth->finish;
+
+    print STDERR "Categories: @categories \n" if $DEBUG;
+
+    print STDERR "Getting src_groups for the src: $custid, $srcip, $ident\n" if $DEBUG;
+
+    my @src_grp;
+
+### USE NetAddr::IP module - $ip->within()
+## Get the group IDs of the SRC for CUST
+# 1. Check all the "src" for the customer with type "ip"
+# 2. Check all the "src" for the customer with type "iprange"
+# 3. Check all the "src" for the customer with type "network"
+# 4. Check all the "src" for the customer with type "user"
+## Get the group IDs for each of the matching "src"
+# Return
+
+    $sql = qq/ SELECT id,value FROM src WHERE customer = ? AND src_type in (2, 3, 4) /;
+    $sth = $dbh->prepare($sql);
+    $sth->execute($custid);
+
+
+    my $src_ip_obj = NetAddr::IP->new($srcip);
+
+    my ($src_id, $db_src, %srchash, @src_values, $src_group_id);
+
+    $sth->bind_columns(\$src_id, \$db_src);
+
+    while ($sth->fetch()){
+
+        print STDERR "Checking if $srcip lies within/matches $db_src.\n";
+
+        if ( $src_ip_obj->within ( NetAddr::IP->new( $db_src ) ) ){
+            my $sql = qq / SELECT grp FROM src_groups WHERE member = ? /;
+            my $sth = $dbh->prepare($sql);
+            $sth->execute("$src_id");
+            $sth->bind_columns(\$src_group_id);
+
+            while ($sth->fetch()){
+                print STDERR "Adding $src_group_id to src_group list for $db_src/$srcip\n";
+                push @src_grp, $src_group_id;
+            }
+            $sth->finish;
+
+        }
+
+    }
+    $sth->finish;
+
+    if ($ident ne '-'){
+        $sql = qq/ SELECT src_groups.grp from src, src_groups WHERE src.customer = ? AND src.value = ? AND src_groups.member = src.id /;
+        $sth = $dbh->prepare($sql);
+        $sth->execute($custid, $ident);
+
+        $sth->bind_columns(\$src_group_id);
+        while ($sth->fetch()){
+            push @src_grp, $src_group_id;
+        }
+        $sth->finish;
+    }
+
+## Get the default access rule
+    $sql = "SELECT acl::jsonb#>>'{seq}' AS seq, acl::jsonb#>>'{access}' AS access from \
+                acls where customer = ? and acl::jsonb#>'{src}' \\? '0' \
+                and acl::jsonb#>'{dst}' \\? '0' order by seq desc limit 1";
+    $sth = $dbh->prepare($sql);
+    $sth->execute($custid);
+    my ($seq, $ACCESS);
+    $sth->bind_columns(\$seq, \$ACCESS);
+    while($sth->fetch()){
+        print STDERR "Got default access at seq $seq as $ACCESS\n" if $DEBUG;
+    }
+
+    print STDERR "ACCESS is now $ACCESS\n" if $DEBUG;
+# Get all the rules which have SRC -> 0 (ALL) & DST -> 0 or request DST
+    undef $sql; undef $sth;
+    $sql =   "SELECT (acl::jsonb#>>'{seq}')::INT AS seq, acl::jsonb#>>'{access}' AS access from acls where \
+                customer = ?";
+
+    my ($srcstring, $dststring);
+    my $src_grp_count = $#src_grp + 1;
+    my $cat_count = $#categories + 1;
+
+    print STDERR "Source Group Count: $src_grp_count Categories Count: $cat_count \n" if $DEBUG;
+
+
+    if ($src_grp_count){
+        foreach (@src_grp){
+            $_ = "\'$_\'";
+            print STDERR "Source group $_\n";
+            $srcstring = join (',', $srcstring, $_);
+        }
+        $srcstring =~ s/^,//;
+
+        $sql = $sql . " and acl::jsonb#>\'{src}\' \\?| array[$srcstring] ";
+    }
+
+    if ($cat_count){
+        foreach (@categories){
+            $_ = "\'$_\'";
+            print STDERR "Destination category $_\n";
+            $dststring = join (',', $dststring, $_);
+        }
+        $dststring =~ s/^,//;
+
+        $sql = $sql . " and acl::jsonb#>\'{dst}\' \\?| array[$dststring] ";
+
+    }
+
+    $sql = $sql . ' order by seq desc';
+       
+    print STDERR "Getting rules with srcstring $srcstring and dststring $dststring\n";
+    print STDERR "Query is: $sql\n";
+
+    $sth = $dbh->prepare($sql);
+    $sth->execute($custid);
+
+    my @rules;
+    $sth->bind_columns(\$seq, \$ACCESS);
+    while ($sth->fetch()){
+        print STDERR "Got rule seq: $seq and access: $ACCESS\n";
+    }
+    print STDERR "Access is now $ACCESS\n" if $DEBUG;
+    $sth->finish;
 
 #    return "You said $msg\r\n";
-    return "OK\r\n";
-
-}
-
-### Subroutine to get GLOBAL and CUSTOM categories for a domain
-#### Needs requestd domain and customer ID
-sub get_categories {
-    my $dst = shift;
-    return 1;
-}
-
-sub get_rules {
-    my ($cust, $src, $dst) = @_;
-
-}
-
-sub check_src {
-    my $src = shift;
+    if ($ACCESS){
+        return "OK\r\n";
+    }
+    else{
+        return "OK status=302 url=\"http://hopbox.in/cgi-bin/block.cgi\"";
+    }
 
 }
 
 sub check_times {
+
+    my $dbh  = shift;
     my $time = shift;
 
 }
