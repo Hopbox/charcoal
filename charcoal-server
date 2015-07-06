@@ -1,0 +1,111 @@
+#!/usr/bin/perl -w -T
+
+package charcoal_server;
+
+use strict;
+use warnings;
+
+use strict;
+use Cwd;
+use DBI;
+
+# The AutoCommit attribute should always be explicitly set
+use DBD::Pg qw(:pg_types :async);
+
+my $pgdbhost = '10.28.0.1';
+my $pgdbname = 'charcoaldb';
+my $pgdbuser = 'charcoal';
+my $pgdbpass = 'charcoa1pa55';
+my $pgdbport = 5433;
+
+use MongoDB;
+use MongoDB::OID;
+
+use Redis;
+
+use base qw(Net::Server::PreFork);
+
+my $server = __PACKAGE__->new({
+                    'log_level'   =>  4,
+                    'log_file'    => 'Sys::Syslog',
+                    'syslog_ident'=> 'charcoal-server',
+                    'port'        =>  6603,
+                    'ipv'         =>  4,
+                    'proto'       =>  'tcp',
+                    'user'        =>  'nobody',
+                    'group'       =>  'nogroup',
+                });
+
+### Get MongoDB connection
+my $conn = MongoDB::MongoClient->new( host => 'tunnelr2.hopbox.in:27017') or die "Could not connect to MongoDB: $!\n";
+my $db = $conn->get_database('charcoal');
+
+### Get Redis connection
+my $redis = Redis->new( server => 'tunnelr3.hopbox.in:6379' ) or die "Could not connect to Redis: $!\n";
+
+### Get PG DB Connection
+my $dbh = DBI->connect("dbi:Pg:dbname=$pgdbname;host=$pgdbhost;port=$pgdbport;", $pgdbuser, $pgdbpass, {AutoCommit => 1, RaiseError => 1});
+
+### Start accepting the connection
+$server->run;
+
+
+sub process_request {
+
+    my $self = shift;
+
+    eval {
+
+        local $SIG{'ALRM'} = sub { die "Timed Out!\n" };
+        my $timeout = 30;
+
+        my $previous_alarm = alarm($timeout);
+
+        while (<STDIN>){
+            s/\r?\n$//;
+            my $result = check_acl($_);
+            print $result;
+            alarm($timeout);
+        }
+
+        alarm($previous_alarm);
+    };
+
+    if ($@ =~ /timed out/i){
+        print STDOUT "Timed Out.\r\n";
+        return;
+    }
+}
+
+sub check_acl {
+
+    my $msg = shift;
+
+#    return "You said $msg\r\n";
+    return "OK\r\n";
+
+}
+
+### Subroutine to get GLOBAL and CUSTOM categories for a domain
+#### Needs requestd domain and customer ID
+sub get_categories {
+    my $dst = shift;
+    return 1;
+}
+
+sub get_rules {
+    my ($cust, $src, $dst) = @_;
+
+}
+
+sub check_src {
+    my $src = shift;
+
+}
+
+sub check_times {
+    my $time = shift;
+
+}
+
+1;
