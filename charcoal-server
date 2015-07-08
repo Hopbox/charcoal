@@ -1,11 +1,10 @@
-#!/usr/bin/perl -w -T
+#!/usr/bin/perl
 
 package charcoal_server;
 
 $| = 1;
 
-use strict;
-use warnings;
+#use warnings;
 
 use strict;
 use Cwd;
@@ -14,6 +13,7 @@ use DBD::Pg;
 die "This program requires DBD::Pg version >= 3.5.0" unless $DBD::Pg::VERSION >= 3.5.0;
 use JSON::XS;
 use NetAddr::IP;
+use URI::Split qw(uri_split);
 
 
 # Set or unset DEBUG mode
@@ -59,8 +59,11 @@ sub process_request {
 
         while (<STDIN>){
             s/\r?\n$//;
-            my $result = check_acl($_);
-            print $result;
+            print STDERR "MAIN: Sending for check_acl\n" if $DEBUG;
+            my $allowdeny = check_acl($_);
+            print $allowdeny;
+            $allowdeny = "OK" if (!$allowdeny);
+            print STDERR "MAIN: Returned from check_acl - allowdeny is $allowdeny\n" if $DEBUG;
             $self->disconnect;
             alarm($timeout);
         }
@@ -80,7 +83,7 @@ sub post_accept_hook {
 
 
 sub post_process_request {
-    print STDERR "Disconnecting from DB\n";
+    print STDERR "Disconnecting from DB\n" if $DEBUG;
     $dbh->disconnect;
 }
 
@@ -89,11 +92,10 @@ sub connect_db {
 
     my $self = shift;
 
-    print STDERR "Connecting to database $pgdbname on $pgdbhost:$pgdbport...";
+    print STDERR "Connecting to database $pgdbname on $pgdbhost:$pgdbport...\n" if $DEBUG;
 
     ### Get PG DB Connection
     $dbh = DBI->connect("dbi:Pg:dbname=$pgdbname;host=$pgdbhost;port=$pgdbport;", $pgdbuser, $pgdbpass, {AutoCommit => 1, RaiseError => 1, InactiveDestroy => 1});
-    print STDERR " done\n";
 
 #    return $dbh;
 
@@ -105,7 +107,9 @@ sub check_acl {
     print STDERR "Got MSG: " . $msg . "\n" if $DEBUG;
     print STDERR "Connecting to database $pgdbname on $pgdbhost:$pgdbport...";
 
-    my ($api, $srcip, $ident, $method, $blah, $url) = split(/\|/, $msg);
+    my ($api, $squidver, $srcip, $ident, $method, $blah, $url) = split(/\|/, $msg);
+
+    $srcip =~ s/\/-$//;
 
     my $sql = qq{ SELECT id FROM customers where api = ? };
     my $sth = $dbh->prepare($sql);
@@ -120,167 +124,206 @@ sub check_acl {
     $sth->finish;
 
     print STDERR "Customer ID for API Key \'$api\': $custid\n" if $DEBUG;
-
-    my $dst = $url;
-    $dst =~ s/http:\/\///;
-    $dst =~ s/\ //g; ### Strip off spaces
-
-    print STDERR "Getting categories for destination $dst.\n";
-
-    my $glsql = qq{ SELECT category FROM gl_dom_cat WHERE domain IN (SELECT id FROM domains WHERE domain = ?) };
-    my $csql = qq { SELECT category FROM c_dom_cat WHERE domain IN (SELECT id FROM c_domains WHERE customer = ? and domain = ?)};
-
-    $sth = $dbh->prepare($glsql);
-    my ($category, @categories);
-    $sth->execute($dst);
-    $sth->bind_columns(\$category);
-    while ($sth->fetch()){
-            print STDERR "Found global category $category for destination $dst\n" if $DEBUG;
-            push @categories, $category;
-        }
-
-    $sth->finish;
-
-    $sth = $dbh->prepare($csql);
-    $sth->execute($custid, $dst);
-    $sth->bind_columns(\$category);
-    while ($sth->fetch()){
-            print STDERR "Found customer category $category for destination $dst\n" if $DEBUG;
-            push @categories, $category;
-        }   
-
-    $sth->finish;
-
-    print STDERR "Categories: @categories \n" if $DEBUG;
-
-    print STDERR "Getting src_groups for the src: $custid, $srcip, $ident\n" if $DEBUG;
-
-    my @src_grp;
-
-### USE NetAddr::IP module - $ip->within()
-## Get the group IDs of the SRC for CUST
-# 1. Check all the "src" for the customer with type "ip"
-# 2. Check all the "src" for the customer with type "iprange"
-# 3. Check all the "src" for the customer with type "network"
-# 4. Check all the "src" for the customer with type "user"
-## Get the group IDs for each of the matching "src"
-# Return
-
-    $sql = qq/ SELECT id,value FROM src WHERE customer = ? AND src_type in (2, 3, 4) /;
-    $sth = $dbh->prepare($sql);
-    $sth->execute($custid);
-
-
-    my $src_ip_obj = NetAddr::IP->new($srcip);
-
-    my ($src_id, $db_src, %srchash, @src_values, $src_group_id);
-
-    $sth->bind_columns(\$src_id, \$db_src);
-
-    while ($sth->fetch()){
-
-        print STDERR "Checking if $srcip lies within/matches $db_src.\n";
-
-        if ( $src_ip_obj->within ( NetAddr::IP->new( $db_src ) ) ){
-            my $sql = qq / SELECT grp FROM src_groups WHERE member = ? /;
-            my $sth = $dbh->prepare($sql);
-            $sth->execute("$src_id");
-            $sth->bind_columns(\$src_group_id);
-
-            while ($sth->fetch()){
-                print STDERR "Adding $src_group_id to src_group list for $db_src/$srcip\n";
-                push @src_grp, $src_group_id;
-            }
-            $sth->finish;
-
-        }
-
-    }
-    $sth->finish;
-
-    if ($ident ne '-'){
-        $sql = qq/ SELECT src_groups.grp from src, src_groups WHERE src.customer = ? AND src.value = ? AND src_groups.member = src.id /;
-        $sth = $dbh->prepare($sql);
-        $sth->execute($custid, $ident);
-
-        $sth->bind_columns(\$src_group_id);
-        while ($sth->fetch()){
-            push @src_grp, $src_group_id;
-        }
-        $sth->finish;
+    if (!$custid){
+        print STDERR "Invalid API Key. Returning\n";
+        return ("BH message=Invalid API Key\r\n");
     }
 
 ## Get the default access rule
+
+    my $ACCESS = 0; # DEFAULT ACCESS IS TO DENY ALL
+
     $sql = "SELECT acl::jsonb#>>'{seq}' AS seq, acl::jsonb#>>'{access}' AS access from \
                 acls where customer = ? and acl::jsonb#>'{src}' \\? '0' \
                 and acl::jsonb#>'{dst}' \\? '0' order by seq desc limit 1";
     $sth = $dbh->prepare($sql);
     $sth->execute($custid);
-    my ($seq, $ACCESS);
-    $sth->bind_columns(\$seq, \$ACCESS);
+    my ($seq, $result);
+    $sth->bind_columns(\$seq, \$result);
     while($sth->fetch()){
-        print STDERR "Got default access at seq $seq as $ACCESS\n" if $DEBUG;
+        print STDERR ">>>> Got default access at seq $seq as $result\n" if $DEBUG;
     }
 
-    print STDERR "ACCESS is now $ACCESS\n" if $DEBUG;
-# Get all the rules which have SRC -> 0 (ALL) & DST -> 0 or request DST
-    undef $sql; undef $sth;
-    $sql =   "SELECT (acl::jsonb#>>'{seq}')::INT AS seq, acl::jsonb#>>'{access}' AS access from acls where \
-                customer = ?";
+    $ACCESS = 1 if $result eq "ALLOW";
+    $ACCESS = 0 if $result eq "DENY";
 
-    my ($srcstring, $dststring);
-    my $src_grp_count = $#src_grp + 1;
-    my $cat_count = $#categories + 1;
-
-    print STDERR "Source Group Count: $src_grp_count Categories Count: $cat_count \n" if $DEBUG;
+    print STDERR "**** ACCESS is now $ACCESS\n" if $DEBUG;
 
 
-    if ($src_grp_count){
-        foreach (@src_grp){
-            $_ = "\'$_\'";
-            print STDERR "Source group $_\n";
-            $srcstring = join (',', $srcstring, $_);
-        }
-        $srcstring =~ s/^,//;
+    my ($scheme, $domain, $path, $query, $frag) = uri_split($url);
+    my $dst = $domain || $scheme;
 
-        $sql = $sql . " and acl::jsonb#>\'{src}\' \\?| array[$srcstring] ";
+    if ($dst =~ /hopbox\.in/){
+        return "OK\r\n" if $squidver == 3;
+        return;
     }
 
-    if ($cat_count){
-        foreach (@categories){
-            $_ = "\'$_\'";
-            print STDERR "Destination category $_\n";
-            $dststring = join (',', $dststring, $_);
-        }
-        $dststring =~ s/^,//;
+    while ($dst) {
+	    print STDERR "#### Getting categories for destination $dst.\n";
+	
+	    my $glsql = qq{ SELECT category FROM gl_dom_cat WHERE domain IN (SELECT id FROM domains WHERE domain = ?) };
+	    my $csql = qq { SELECT category FROM c_dom_cat WHERE domain IN (SELECT id FROM c_domains WHERE customer = ? and domain = ?)};
+	
+	    $sth = $dbh->prepare($glsql);
+	    my ($category, @categories);
+	    $sth->execute($dst);
+	    $sth->bind_columns(\$category);
+	    while ($sth->fetch()){
+	            print STDERR "Found global category $category for destination $dst\n" if $DEBUG;
+	            push @categories, $category;
+	        }
+	
+	    $sth->finish;
+	
+	    $sth = $dbh->prepare($csql);
+	    $sth->execute($custid, $dst);
+	    $sth->bind_columns(\$category);
+	    while ($sth->fetch()){
+	            print STDERR "Found customer category $category for destination $dst\n" if $DEBUG;
+	            push @categories, $category;
+	        }   
+	
+	    $sth->finish;
+	
+	    print STDERR "Categories: @categories \n" if $DEBUG;
+	
+	    print STDERR "Getting src_groups for the src: $custid, $srcip, $ident\n" if $DEBUG;
+	
+	    my @src_grp;
+	
+	### USE NetAddr::IP module - $ip->within()
+	## Get the group IDs of the SRC for CUST
+	# 1. Check all the "src" for the customer with type "ip"
+	# 2. Check all the "src" for the customer with type "iprange"
+	# 3. Check all the "src" for the customer with type "network"
+	# 4. Check all the "src" for the customer with type "user"
+	## Get the group IDs for each of the matching "src"
+	# Return
+	
+	    $sql = qq/ SELECT id,value FROM src WHERE customer = ? AND src_type in (2, 3, 4) /;
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute($custid);
+	
+	
+	    my $src_ip_obj = NetAddr::IP->new($srcip);
+	
+	    my ($src_id, $db_src, %srchash, @src_values, $src_group_id);
+	
+	    $sth->bind_columns(\$src_id, \$db_src);
+	
+	    while ($sth->fetch()){
+	
+	        print STDERR "Checking if $srcip lies within/matches $db_src.\n";
+	
+	        if ( $src_ip_obj->within ( NetAddr::IP->new( $db_src ) ) ){
+	            my $sql = qq / SELECT grp FROM src_groups WHERE member = ? /;
+	            my $sth = $dbh->prepare($sql);
+	            $sth->execute("$src_id");
+	            $sth->bind_columns(\$src_group_id);
+	
+	            while ($sth->fetch()){
+	                print STDERR "Adding $src_group_id to src_group list for $db_src/$srcip\n";
+	                push @src_grp, $src_group_id;
+	            }
+	            $sth->finish;
+	
+	        }
+	
+	    }
+	    $sth->finish;
+	
+	    if ($ident ne '-'){
+	        $sql = qq/ SELECT src_groups.grp from src, src_groups WHERE src.customer = ? AND src.value = ? AND src_groups.member = src.id /;
+	        $sth = $dbh->prepare($sql);
+	        $sth->execute($custid, $ident);
+	
+	        $sth->bind_columns(\$src_group_id);
+	        while ($sth->fetch()){
+	            push @src_grp, $src_group_id;
+	        }
+	        $sth->finish;
+	    }
+	
+	# Get all the rules which have SRC -> 0 (ALL) & DST -> 0 or request DST
+	    undef $sql; undef $sth;
+	    $sql =   "SELECT (acl::jsonb#>>'{seq}')::INT AS seq, acl::jsonb#>>'{access}' AS access from acls where \
+	                customer = ?";
+	
+	    my ($srcstring, $dststring);
+	    my $src_grp_count = $#src_grp + 1;
+	    my $cat_count = $#categories + 1;
+	
+	    print STDERR "Source Group Count: $src_grp_count Categories Count: $cat_count \n" if $DEBUG;
+	
+	
+	    if ($src_grp_count){
+	        foreach (@src_grp){
+	            $_ = "\'$_\'";
+	            print STDERR "Source group $_\n" if $DEBUG;
+	            $srcstring = join (',', $srcstring, $_);
+	        }
+	    }
+	    else{
+	        $srcstring = "\'0\'";
+	    }
+	        $srcstring =~ s/^,//;
+	
+	        $sql = $sql . " and acl::jsonb#>\'{src}\' \\?| array[$srcstring] ";
+	
+	    if ($cat_count){
+	        foreach (@categories){
+	            $_ = "\'$_\'";
+	            print STDERR "Destination category $_\n" if $DEBUG;
+	            $dststring = join (',', $dststring, $_);
+	        }
+	    }
+	    else{
+	        $dststring = "\'0\'";
+	    }
+	        $dststring =~ s/^,//;
+	
+	        $sql = $sql . " and acl::jsonb#>\'{dst}\' \\?| array[$dststring] ";
+	
+	    $sql = $sql . ' order by seq desc';
+	       
+	    print STDERR "Getting rules with srcstring $srcstring and dststring $dststring\n" if $DEBUG;
+	    print STDERR "Query is: $sql\n" if $DEBUG;
+	
+	    $sth = $dbh->prepare($sql);
+	    $sth->execute($custid);
+	
+	    my @rules;
+	    undef $seq; undef $result;
+	    $sth->bind_columns(\$seq, \$result);
+	    while ($sth->fetch()){
+	        print STDERR ">>>> Got rule seq: $seq and access: $result\n" if $DEBUG;
+	    }
+	    $sth->finish;
+	    $ACCESS = 1 if $result eq "ALLOW";
+        $ACCESS = 0 if $result eq "DENY";
 
-        $sql = $sql . " and acl::jsonb#>\'{dst}\' \\?| array[$dststring] ";
 
+        $dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." preceeded by something, make it null and exit;
+        $dst =~ s/^.*?\.(.*)/$1/; ## chop first sub-domain part from left
+        print STDERR ">>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
+	
     }
 
-    $sql = $sql . ' order by seq desc';
-       
-    print STDERR "Getting rules with srcstring $srcstring and dststring $dststring\n";
-    print STDERR "Query is: $sql\n";
-
-    $sth = $dbh->prepare($sql);
-    $sth->execute($custid);
-
-    my @rules;
-    $sth->bind_columns(\$seq, \$ACCESS);
-    while ($sth->fetch()){
-        print STDERR "Got rule seq: $seq and access: $ACCESS\n";
-    }
-    print STDERR "Access is now $ACCESS\n" if $DEBUG;
-    $sth->finish;
+    print STDERR "**** Access is now $ACCESS - out of WHILE DST loop\n" if $DEBUG;
 
 #    return "You said $msg\r\n";
-    if ($ACCESS){
-        return "OK\r\n";
+    if ($ACCESS == 1){
+        print STDERR "Returning to main loop, with ACCESS ALLOW (squid version is $squidver)\n" if $DEBUG;
+        return "OK\r\n" if $squidver == 3;
+        return;
     }
     else{
-        return "OK status=302 url=\"http://hopbox.in/cgi-bin/block.cgi\"";
+        print STDERR "Returning to main loop, with ACCESS DENY (squid version is $squidver)\n" if $DEBUG;
+        return "OK status=302 url=\"http://hopbox.in/cgi-bin/blockmsg.cgi\"" if $squidver == 3;
+        return "302:http://hopbox.in/cgi-bin/blockmsg.cgi" if $squidver == 2;
     }
+
+    print STDERR "End of check_acl subroutine\n" if $DEBUG;
 
 }
 

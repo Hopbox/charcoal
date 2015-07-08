@@ -17,24 +17,27 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
 
-use IO::Socket::INET;
+use IO::Socket;
 
 $|=1; #Flush after write
 
 my $DEBUG = 1 if $d;
+my $squidver = 3;
+$squidver = 2 if $c;
 
 # ARGUMENTS REQUIRED
 # 1. API Key
 
 if ($h){
-	print STDERR "Usage:\t$0 [-dh] <api-key>\n";
-	print STDERR "\t$0 -d <api-key>\t: send debug messages to STDERR\n";
+	print STDERR "Usage:\t$0 [-cdh] <api-key>\n";
+	print STDERR "\t$0 -c -d <api-key>\t: send debug messages to STDERR\n";
 	print STDERR "\t$0 -h\t\t\t: print this message\n";
+    print STDERR "\t$0 -c\t\t\t: run helper in Squid 2.x compatibility mode.\n";
 	exit 0;
 }
 
 if ( @ARGV < 1){
-	print STDERR "BH message=Usage: $0 <api-key>\n";
+	print STDERR "BH message=Usage: $0 -[cdh] <api-key>\n";
 	exit 1;
 }
 
@@ -43,14 +46,16 @@ if ( @ARGV < 1){
 ## Server: charcoal.hopbox.in
 ## Port  : 80
 ##
-my $charcoal_server = 'hopbox.in';
-my $charcoal_port   = '80';
+#my $charcoal_server = '192.168.216.94';
+my $charcoal_server = 'tunnelr3.hopbox.in';
+my $charcoal_port   = '6603';
 my $proto           = 'tcp';
-my $timeout         = 30;
+my $timeout         = 10;
 
 my $apikey = shift @ARGV;
 
 print STDERR "Received API KEY $apikey\n";
+print STDERR "Running for Squid Version $squidver\n";
 
 
 #For each requested URL, the rewriter will receive on line with the format
@@ -92,15 +97,6 @@ print STDERR "Received API KEY $apikey\n";
 
 
 while(<>){
-	my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
-					PeerPort   => $charcoal_port,
-					Proto	   => $proto,
-					Timeout	   => $timeout,
-					MultiHomed => 1,
-					Blocking   => 1,
-				) || (print STDERR "BH message=Error connecting to charcoal server $!\n" && die);
-
-	print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
 
 	chomp;
 
@@ -114,8 +110,22 @@ while(<>){
 	### Concurrency enabled
 		print STDERR "Concurrency Enabled\n" if $DEBUG;
 		my ($chan, $url, $clientip, $ident, $method, $blah, $proxyip, $proxyport) = split(/\s+/);
-		$sock->print("$apikey|$clientip|$ident|$method|$blah|$url");
-		my $res = $chan . ' ' . $sock->getline();
+        print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n";
+    	my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
+					PeerPort   => $charcoal_port,
+					Proto	   => $proto,
+					Timeout	   => $timeout,
+#					MultiHomed => 1,
+#					Blocking   => 1,
+				) || (print STDERR "BH message=Error connecting to charcoal server $!\n" && die);
+
+	    print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
+
+        print $sock "$apikey|$squidver|$clientip|$ident|$method|$blah|$url\r\n";
+        my $access = <$sock>;
+        chomp $access;
+		my $res = $chan . ' ' . $access;
+        $sock->close();
 		print "$res\n";
 		print STDERR "$res\n" if $DEBUG;
 	}
@@ -123,8 +133,21 @@ while(<>){
 	### Concurrency disabled
 		print STDERR "Concurrency Disabled\n" if $DEBUG;
 		my ($url, $clientip, $ident, $method, $blah, $proxyip, $proxyport) = split(/\s+/);
-		$sock->send("$apikey|$clientip|$ident|$method|$blah|$url");
-		my $res = $sock->getline();
+        print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n";
+    	my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
+					PeerPort   => $charcoal_port,
+					Proto	   => $proto,
+					Timeout	   => $timeout,
+					MultiHomed => 1,
+					Blocking   => 1,
+				) || (print STDERR "BH message=Error connecting to charcoal server $!\n" && die);
+
+	    print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
+        print $sock "$apikey|$squidver|$clientip|$ident|$method|$blah|$url\r\n";
+        my $access = <$sock>;
+        chomp $access;
+		my $res = $chan . ' ' . $access;
+        $sock->close();
 		print "$res\n";
 		print STDERR "$res\n" if $DEBUG;
 	}
