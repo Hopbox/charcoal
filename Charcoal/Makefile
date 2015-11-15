@@ -1,7 +1,7 @@
 # This Makefile is for the Charcoal extension to perl.
 #
 # It was generated automatically by MakeMaker version
-# 7.04 (Revision: 70400) from the contents of
+# 6.98 (Revision: 69800) from the contents of
 # Makefile.PL. Don't edit this file, edit Makefile.PL instead.
 #
 #       ANY CHANGES MADE HERE WILL BE LOST!
@@ -20,20 +20,20 @@
 #     LICENSE => q[perl]
 #     NAME => q[Charcoal]
 #     NO_META => q[1]
-#     PREREQ_PM => { Catalyst::Action::RenderView=>q[0], Catalyst::Authentication::Store::MongoDB=>q[0], Catalyst::Model::MongoDB=>q[0], Catalyst::Plugin::Cache::FastMmap=>q[0], Catalyst::Plugin::ConfigLoader=>q[0], Catalyst::Plugin::Static::Simple=>q[0], Catalyst::Runtime=>q[5.90079], Config::General=>q[0], ExtUtils::MakeMaker=>q[6.36], Moose=>q[0], Plack=>q[0], Starman=>q[0], Test::More=>q[0.88], namespace::autoclean=>q[0] }
+#     PREREQ_PM => { Catalyst::Plugin::Session::State::Cookie=>q[0], Catalyst::Plugin::Session::Store::Memcached::Fast=>q[0], Moose=>q[0], Catalyst::Plugin::Authentication=>q[0], Starman=>q[0], Catalyst::Plugin::Static::Simple=>q[0], Catalyst::Plugin::ConfigLoader=>q[0], Data::Validate::IP=>q[0], Plack=>q[0], ExtUtils::MakeMaker=>q[6.36], namespace::autoclean=>q[0], Catalyst::Action::RenderView=>q[0], Catalyst::Runtime=>q[5.90079], Test::More=>q[0.88], Catalyst::Plugin::Cache::FastMmap=>q[0], JSON::XS=>q[0], Config::General=>q[0] }
 #     TEST_REQUIRES => {  }
-#     VERSION => q[0.01]
+#     VERSION => q[0.02]
 #     VERSION_FROM => q[lib/Charcoal.pm]
-#     dist => { PREOP=>q[$(PERL) -I. "-MModule::Install::Admin" -e "dist_preop(q($(DISTVNAME)))"] }
+#     dist => {  }
 #     realclean => { FILES=>q[MYMETA.yml] }
-#     test => { TESTS=>q[t/01app.t t/02pod.t t/03podcoverage.t t/model_Mongo.t t/view_HTML.t t/view_JSON.t] }
+#     test => { TESTS=>q[t/01app.t t/02pod.t t/03podcoverage.t t/controller_Admin-Acls.t t/controller_Admin-Destinations.t t/controller_Admin-SourceGroups.t t/controller_Admin-Sources.t t/controller_Admin.t t/controller_Login.t t/controller_Logout.t t/model_Mongo.t t/model_Pg.t t/model_PgDB.t t/view_HTML.t t/view_JSON.t] }
 
 # --- MakeMaker post_initialize section:
 
 
 # --- MakeMaker const_config section:
 
-# These definitions are from config.sh (via /usr/lib/x86_64-linux-gnu/perl/5.20/Config.pm).
+# These definitions are from config.sh (via /usr/lib/arm-linux-gnueabihf/perl/5.20/Config.pm).
 # They may have been overridden via Makefile.PL or on the command line.
 AR = ar
 CC = cc
@@ -50,12 +50,12 @@ LIBC = libc-2.19.so
 LIB_EXT = .a
 OBJ_EXT = .o
 OSNAME = linux
-OSVERS = 3.2.0-4-amd64
+OSVERS = 3.19.0-trunk-armmp
 RANLIB = :
-SITELIBEXP = /usr/local/share/perl/5.20.1
-SITEARCHEXP = /usr/local/lib/x86_64-linux-gnu/perl/5.20.1
+SITELIBEXP = /usr/local/share/perl/5.20.2
+SITEARCHEXP = /usr/local/lib/arm-linux-gnueabihf/perl/5.20.2
 SO = so
-VENDORARCHEXP = /usr/lib/x86_64-linux-gnu/perl5/5.20
+VENDORARCHEXP = /usr/lib/arm-linux-gnueabihf/perl5/5.20
 VENDORLIBEXP = /usr/share/perl5
 
 
@@ -65,11 +65,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = Charcoal
 NAME_SYM = Charcoal
-VERSION = 0.01
+VERSION = 0.02
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_01
+VERSION_SYM = 0_02
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.01
+XS_VERSION = 0.02
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -82,58 +82,56 @@ MAN1EXT = 1p
 MAN3EXT = 3pm
 INSTALLDIRS = site
 DESTDIR = 
-PREFIX = $(SITEPREFIX)
-PERLPREFIX = /usr
-SITEPREFIX = /usr/local
-VENDORPREFIX = /usr
-INSTALLPRIVLIB = /usr/share/perl/5.20
+PREFIX = /usr
+PERLPREFIX = $(PREFIX)
+SITEPREFIX = $(PREFIX)/local
+VENDORPREFIX = $(PREFIX)
+INSTALLPRIVLIB = $(PERLPREFIX)/share/perl/5.20
 DESTINSTALLPRIVLIB = $(DESTDIR)$(INSTALLPRIVLIB)
-INSTALLSITELIB = /usr/local/share/perl/5.20.1
+INSTALLSITELIB = $(SITEPREFIX)/share/perl/5.20.2
 DESTINSTALLSITELIB = $(DESTDIR)$(INSTALLSITELIB)
-INSTALLVENDORLIB = /usr/share/perl5
+INSTALLVENDORLIB = $(VENDORPREFIX)/share/perl5
 DESTINSTALLVENDORLIB = $(DESTDIR)$(INSTALLVENDORLIB)
-INSTALLARCHLIB = /usr/lib/x86_64-linux-gnu/perl/5.20
+INSTALLARCHLIB = $(PERLPREFIX)/lib/arm-linux-gnueabihf/perl/5.20
 DESTINSTALLARCHLIB = $(DESTDIR)$(INSTALLARCHLIB)
-INSTALLSITEARCH = /usr/local/lib/x86_64-linux-gnu/perl/5.20.1
+INSTALLSITEARCH = $(SITEPREFIX)/lib/arm-linux-gnueabihf/perl/5.20.2
 DESTINSTALLSITEARCH = $(DESTDIR)$(INSTALLSITEARCH)
-INSTALLVENDORARCH = /usr/lib/x86_64-linux-gnu/perl5/5.20
+INSTALLVENDORARCH = $(VENDORPREFIX)/lib/arm-linux-gnueabihf/perl5/5.20
 DESTINSTALLVENDORARCH = $(DESTDIR)$(INSTALLVENDORARCH)
-INSTALLBIN = /usr/bin
+INSTALLBIN = $(PERLPREFIX)/bin
 DESTINSTALLBIN = $(DESTDIR)$(INSTALLBIN)
-INSTALLSITEBIN = /usr/local/bin
+INSTALLSITEBIN = $(SITEPREFIX)/bin
 DESTINSTALLSITEBIN = $(DESTDIR)$(INSTALLSITEBIN)
-INSTALLVENDORBIN = /usr/bin
+INSTALLVENDORBIN = $(VENDORPREFIX)/bin
 DESTINSTALLVENDORBIN = $(DESTDIR)$(INSTALLVENDORBIN)
-INSTALLSCRIPT = /usr/bin
+INSTALLSCRIPT = $(PERLPREFIX)/bin
 DESTINSTALLSCRIPT = $(DESTDIR)$(INSTALLSCRIPT)
-INSTALLSITESCRIPT = /usr/local/bin
+INSTALLSITESCRIPT = $(SITEPREFIX)/bin
 DESTINSTALLSITESCRIPT = $(DESTDIR)$(INSTALLSITESCRIPT)
-INSTALLVENDORSCRIPT = /usr/bin
+INSTALLVENDORSCRIPT = $(VENDORPREFIX)/bin
 DESTINSTALLVENDORSCRIPT = $(DESTDIR)$(INSTALLVENDORSCRIPT)
-INSTALLMAN1DIR = /usr/share/man/man1
+INSTALLMAN1DIR = $(PERLPREFIX)/share/man/man1
 DESTINSTALLMAN1DIR = $(DESTDIR)$(INSTALLMAN1DIR)
-INSTALLSITEMAN1DIR = /usr/local/man/man1
+INSTALLSITEMAN1DIR = $(SITEPREFIX)/man/man1
 DESTINSTALLSITEMAN1DIR = $(DESTDIR)$(INSTALLSITEMAN1DIR)
-INSTALLVENDORMAN1DIR = /usr/share/man/man1
+INSTALLVENDORMAN1DIR = $(VENDORPREFIX)/share/man/man1
 DESTINSTALLVENDORMAN1DIR = $(DESTDIR)$(INSTALLVENDORMAN1DIR)
-INSTALLMAN3DIR = /usr/share/man/man3
+INSTALLMAN3DIR = $(PERLPREFIX)/share/man/man3
 DESTINSTALLMAN3DIR = $(DESTDIR)$(INSTALLMAN3DIR)
-INSTALLSITEMAN3DIR = /usr/local/man/man3
+INSTALLSITEMAN3DIR = $(SITEPREFIX)/man/man3
 DESTINSTALLSITEMAN3DIR = $(DESTDIR)$(INSTALLSITEMAN3DIR)
-INSTALLVENDORMAN3DIR = /usr/share/man/man3
+INSTALLVENDORMAN3DIR = $(VENDORPREFIX)/share/man/man3
 DESTINSTALLVENDORMAN3DIR = $(DESTDIR)$(INSTALLVENDORMAN3DIR)
 PERL_LIB =
-PERL_ARCHLIB = /usr/lib/x86_64-linux-gnu/perl/5.20
-PERL_ARCHLIBDEP = /usr/lib/x86_64-linux-gnu/perl/5.20
+PERL_ARCHLIB = /usr/lib/arm-linux-gnueabihf/perl/5.20
 LIBPERL_A = libperl.a
 FIRST_MAKEFILE = Makefile
 MAKEFILE_OLD = Makefile.old
 MAKE_APERL_FILE = Makefile.aperl
 PERLMAINCC = $(CC)
-PERL_INC = /usr/lib/x86_64-linux-gnu/perl/5.20/CORE
-PERL_INCDEP = /usr/lib/x86_64-linux-gnu/perl/5.20/CORE
-PERL = "/usr/bin/perl" "-Iinc"
-FULLPERL = "/usr/bin/perl" "-Iinc"
+PERL_INC = /usr/lib/arm-linux-gnueabihf/perl/5.20/CORE
+PERL = /usr/bin/perl "-Iinc"
+FULLPERL = /usr/bin/perl "-Iinc"
 ABSPERL = $(PERL)
 PERLRUN = $(PERL)
 FULLPERLRUN = $(FULLPERL)
@@ -146,9 +144,9 @@ PERM_DIR = 755
 PERM_RW = 644
 PERM_RWX = 755
 
-MAKEMAKER   = /usr/local/share/perl/5.20.1/ExtUtils/MakeMaker.pm
-MM_VERSION  = 7.04
-MM_REVISION = 70400
+MAKEMAKER   = /usr/share/perl/5.20/ExtUtils/MakeMaker.pm
+MM_VERSION  = 6.98
+MM_REVISION = 69800
 
 # FULLEXT = Pathname for extension directory (eg Foo/Bar/Oracle).
 # BASEEXT = Basename part of FULLEXT. May be just equal FULLEXT. (eg Oracle)
@@ -176,13 +174,48 @@ MAN1PODS = script/charcoal_cgi.pl \
 	script/charcoal_server.pl \
 	script/charcoal_test.pl
 MAN3PODS = lib/Charcoal.pm \
+	lib/Charcoal/Controller/Admin.pm \
+	lib/Charcoal/Controller/Admin/Acls.pm \
+	lib/Charcoal/Controller/Admin/Destinations.pm \
+	lib/Charcoal/Controller/Admin/SourceGroups.pm \
+	lib/Charcoal/Controller/Admin/Sources.pm \
+	lib/Charcoal/Controller/Login.pm \
+	lib/Charcoal/Controller/Logout.pm \
 	lib/Charcoal/Controller/Root.pm \
-	lib/Charcoal/Model/Mongo.pm \
+	lib/Charcoal/Model/PgDB.pm \
+	lib/Charcoal/Schema/PgDB/Result/Acl.pm \
+	lib/Charcoal/Schema/PgDB/Result/CDomCat.pm \
+	lib/Charcoal/Schema/PgDB/Result/CDomain.pm \
+	lib/Charcoal/Schema/PgDB/Result/Category.pm \
+	lib/Charcoal/Schema/PgDB/Result/Customer.pm \
+	lib/Charcoal/Schema/PgDB/Result/Domain.pm \
+	lib/Charcoal/Schema/PgDB/Result/Expr.pm \
+	lib/Charcoal/Schema/PgDB/Result/GlDomCat.pm \
+	lib/Charcoal/Schema/PgDB/Result/Group.pm \
+	lib/Charcoal/Schema/PgDB/Result/Src.pm \
+	lib/Charcoal/Schema/PgDB/Result/SrcGroup.pm \
+	lib/Charcoal/Schema/PgDB/Result/SrcType.pm \
+	lib/Charcoal/Schema/PgDB/Result/Url.pm \
+	lib/Charcoal/Schema/PgDB/Result/User.pm \
 	lib/Charcoal/View/HTML.pm \
-	lib/Charcoal/View/JSON.pm
+	lib/Charcoal/View/JSON.pm \
+	lib/PgDB/Schema/Result/Acl.pm \
+	lib/PgDB/Schema/Result/CDomCat.pm \
+	lib/PgDB/Schema/Result/CDomain.pm \
+	lib/PgDB/Schema/Result/Category.pm \
+	lib/PgDB/Schema/Result/Customer.pm \
+	lib/PgDB/Schema/Result/Domain.pm \
+	lib/PgDB/Schema/Result/Expr.pm \
+	lib/PgDB/Schema/Result/GlDomCat.pm \
+	lib/PgDB/Schema/Result/Group.pm \
+	lib/PgDB/Schema/Result/Src.pm \
+	lib/PgDB/Schema/Result/SrcGroup.pm \
+	lib/PgDB/Schema/Result/SrcType.pm \
+	lib/PgDB/Schema/Result/Url.pm \
+	lib/PgDB/Schema/Result/User.pm
 
 # Where is the Config information that we are using/depend on
-CONFIGDEP = $(PERL_ARCHLIBDEP)$(DFSEP)Config.pm $(PERL_INCDEP)$(DFSEP)config.h
+CONFIGDEP = $(PERL_ARCHLIB)$(DFSEP)Config.pm $(PERL_INC)$(DFSEP)config.h
 
 # Where to build things
 INST_LIBDIR      = $(INST_LIB)
@@ -198,30 +231,146 @@ INST_BOOT        =
 # Extra linker info
 EXPORT_LIST        = 
 PERL_ARCHIVE       = 
-PERL_ARCHIVEDEP    = 
 PERL_ARCHIVE_AFTER = 
 
 
 TO_INST_PM = lib/Charcoal.pm \
+	lib/Charcoal/Controller/Admin.pm \
+	lib/Charcoal/Controller/Admin/Acls.pm \
+	lib/Charcoal/Controller/Admin/Destinations.pm \
+	lib/Charcoal/Controller/Admin/SourceGroups.pm \
+	lib/Charcoal/Controller/Admin/Sources.pm \
+	lib/Charcoal/Controller/Admin/geany_run_script.sh \
+	lib/Charcoal/Controller/Login.pm \
+	lib/Charcoal/Controller/Logout.pm \
 	lib/Charcoal/Controller/Root.pm \
-	lib/Charcoal/Model/Mongo.pm \
+	lib/Charcoal/Model/PgDB.pm \
+	lib/Charcoal/Model/PgDB.pm.back \
+	lib/Charcoal/Schema/PgDB.pm \
+	lib/Charcoal/Schema/PgDB/Result/Acl.pm \
+	lib/Charcoal/Schema/PgDB/Result/CDomCat.pm \
+	lib/Charcoal/Schema/PgDB/Result/CDomain.pm \
+	lib/Charcoal/Schema/PgDB/Result/Category.pm \
+	lib/Charcoal/Schema/PgDB/Result/Customer.pm \
+	lib/Charcoal/Schema/PgDB/Result/Domain.pm \
+	lib/Charcoal/Schema/PgDB/Result/Expr.pm \
+	lib/Charcoal/Schema/PgDB/Result/GlDomCat.pm \
+	lib/Charcoal/Schema/PgDB/Result/Group.pm \
+	lib/Charcoal/Schema/PgDB/Result/Src.pm \
+	lib/Charcoal/Schema/PgDB/Result/SrcGroup.pm \
+	lib/Charcoal/Schema/PgDB/Result/SrcType.pm \
+	lib/Charcoal/Schema/PgDB/Result/Url.pm \
+	lib/Charcoal/Schema/PgDB/Result/User.pm \
 	lib/Charcoal/View/HTML.pm \
-	lib/Charcoal/View/JSON.pm
+	lib/Charcoal/View/JSON.pm \
+	lib/PgDB/Schema.pm \
+	lib/PgDB/Schema/Result/Acl.pm \
+	lib/PgDB/Schema/Result/CDomCat.pm \
+	lib/PgDB/Schema/Result/CDomain.pm \
+	lib/PgDB/Schema/Result/Category.pm \
+	lib/PgDB/Schema/Result/Customer.pm \
+	lib/PgDB/Schema/Result/Domain.pm \
+	lib/PgDB/Schema/Result/Expr.pm \
+	lib/PgDB/Schema/Result/GlDomCat.pm \
+	lib/PgDB/Schema/Result/Group.pm \
+	lib/PgDB/Schema/Result/Src.pm \
+	lib/PgDB/Schema/Result/SrcGroup.pm \
+	lib/PgDB/Schema/Result/SrcType.pm \
+	lib/PgDB/Schema/Result/Url.pm \
+	lib/PgDB/Schema/Result/User.pm
 
 PM_TO_BLIB = lib/Charcoal.pm \
 	blib/lib/Charcoal.pm \
+	lib/Charcoal/Controller/Admin.pm \
+	blib/lib/Charcoal/Controller/Admin.pm \
+	lib/Charcoal/Controller/Admin/Acls.pm \
+	blib/lib/Charcoal/Controller/Admin/Acls.pm \
+	lib/Charcoal/Controller/Admin/Destinations.pm \
+	blib/lib/Charcoal/Controller/Admin/Destinations.pm \
+	lib/Charcoal/Controller/Admin/SourceGroups.pm \
+	blib/lib/Charcoal/Controller/Admin/SourceGroups.pm \
+	lib/Charcoal/Controller/Admin/Sources.pm \
+	blib/lib/Charcoal/Controller/Admin/Sources.pm \
+	lib/Charcoal/Controller/Admin/geany_run_script.sh \
+	blib/lib/Charcoal/Controller/Admin/geany_run_script.sh \
+	lib/Charcoal/Controller/Login.pm \
+	blib/lib/Charcoal/Controller/Login.pm \
+	lib/Charcoal/Controller/Logout.pm \
+	blib/lib/Charcoal/Controller/Logout.pm \
 	lib/Charcoal/Controller/Root.pm \
 	blib/lib/Charcoal/Controller/Root.pm \
-	lib/Charcoal/Model/Mongo.pm \
-	blib/lib/Charcoal/Model/Mongo.pm \
+	lib/Charcoal/Model/PgDB.pm \
+	blib/lib/Charcoal/Model/PgDB.pm \
+	lib/Charcoal/Model/PgDB.pm.back \
+	blib/lib/Charcoal/Model/PgDB.pm.back \
+	lib/Charcoal/Schema/PgDB.pm \
+	blib/lib/Charcoal/Schema/PgDB.pm \
+	lib/Charcoal/Schema/PgDB/Result/Acl.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/Acl.pm \
+	lib/Charcoal/Schema/PgDB/Result/CDomCat.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/CDomCat.pm \
+	lib/Charcoal/Schema/PgDB/Result/CDomain.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/CDomain.pm \
+	lib/Charcoal/Schema/PgDB/Result/Category.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/Category.pm \
+	lib/Charcoal/Schema/PgDB/Result/Customer.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/Customer.pm \
+	lib/Charcoal/Schema/PgDB/Result/Domain.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/Domain.pm \
+	lib/Charcoal/Schema/PgDB/Result/Expr.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/Expr.pm \
+	lib/Charcoal/Schema/PgDB/Result/GlDomCat.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/GlDomCat.pm \
+	lib/Charcoal/Schema/PgDB/Result/Group.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/Group.pm \
+	lib/Charcoal/Schema/PgDB/Result/Src.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/Src.pm \
+	lib/Charcoal/Schema/PgDB/Result/SrcGroup.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/SrcGroup.pm \
+	lib/Charcoal/Schema/PgDB/Result/SrcType.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/SrcType.pm \
+	lib/Charcoal/Schema/PgDB/Result/Url.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/Url.pm \
+	lib/Charcoal/Schema/PgDB/Result/User.pm \
+	blib/lib/Charcoal/Schema/PgDB/Result/User.pm \
 	lib/Charcoal/View/HTML.pm \
 	blib/lib/Charcoal/View/HTML.pm \
 	lib/Charcoal/View/JSON.pm \
-	blib/lib/Charcoal/View/JSON.pm
+	blib/lib/Charcoal/View/JSON.pm \
+	lib/PgDB/Schema.pm \
+	blib/lib/PgDB/Schema.pm \
+	lib/PgDB/Schema/Result/Acl.pm \
+	blib/lib/PgDB/Schema/Result/Acl.pm \
+	lib/PgDB/Schema/Result/CDomCat.pm \
+	blib/lib/PgDB/Schema/Result/CDomCat.pm \
+	lib/PgDB/Schema/Result/CDomain.pm \
+	blib/lib/PgDB/Schema/Result/CDomain.pm \
+	lib/PgDB/Schema/Result/Category.pm \
+	blib/lib/PgDB/Schema/Result/Category.pm \
+	lib/PgDB/Schema/Result/Customer.pm \
+	blib/lib/PgDB/Schema/Result/Customer.pm \
+	lib/PgDB/Schema/Result/Domain.pm \
+	blib/lib/PgDB/Schema/Result/Domain.pm \
+	lib/PgDB/Schema/Result/Expr.pm \
+	blib/lib/PgDB/Schema/Result/Expr.pm \
+	lib/PgDB/Schema/Result/GlDomCat.pm \
+	blib/lib/PgDB/Schema/Result/GlDomCat.pm \
+	lib/PgDB/Schema/Result/Group.pm \
+	blib/lib/PgDB/Schema/Result/Group.pm \
+	lib/PgDB/Schema/Result/Src.pm \
+	blib/lib/PgDB/Schema/Result/Src.pm \
+	lib/PgDB/Schema/Result/SrcGroup.pm \
+	blib/lib/PgDB/Schema/Result/SrcGroup.pm \
+	lib/PgDB/Schema/Result/SrcType.pm \
+	blib/lib/PgDB/Schema/Result/SrcType.pm \
+	lib/PgDB/Schema/Result/Url.pm \
+	blib/lib/PgDB/Schema/Result/Url.pm \
+	lib/PgDB/Schema/Result/User.pm \
+	blib/lib/PgDB/Schema/Result/User.pm
 
 
 # --- MakeMaker platform_constants section:
-MM_Unix_VERSION = 7.04
+MM_Unix_VERSION = 6.98
 PERL_MALLOC_DEF = -DPERL_EXTMALLOC_DEF -Dmalloc=Perl_malloc -Dfree=Perl_mfree -Drealloc=Perl_realloc -Dcalloc=Perl_calloc
 
 
@@ -279,7 +428,7 @@ ZIPFLAGS = -r
 COMPRESS = gzip --best
 SUFFIX = .gz
 SHAR = shar
-PREOP = $(PERL) -I. "-MModule::Install::Admin" -e "dist_preop(q($(DISTVNAME)))"
+PREOP = $(NOECHO) $(NOOP)
 POSTOP = $(NOECHO) $(NOOP)
 TO_UNIX = $(NOECHO) $(NOOP)
 CI = ci -u
@@ -287,7 +436,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = Charcoal
-DISTVNAME = Charcoal-0.01
+DISTVNAME = Charcoal-0.02
 
 
 # --- MakeMaker macro section:
@@ -312,6 +461,7 @@ DISTVNAME = Charcoal-0.01
 
 PASTHRU = LIBPERL_A="$(LIBPERL_A)"\
 	LINKTYPE="$(LINKTYPE)"\
+	LD="$(LD)"\
 	PREFIX="$(PREFIX)"
 
 
@@ -441,27 +591,98 @@ POD2MAN = $(POD2MAN_EXE)
 
 manifypods : pure_all  \
 	lib/Charcoal.pm \
+	lib/Charcoal/Controller/Admin.pm \
+	lib/Charcoal/Controller/Admin/Acls.pm \
+	lib/Charcoal/Controller/Admin/Destinations.pm \
+	lib/Charcoal/Controller/Admin/SourceGroups.pm \
+	lib/Charcoal/Controller/Admin/Sources.pm \
+	lib/Charcoal/Controller/Login.pm \
+	lib/Charcoal/Controller/Logout.pm \
 	lib/Charcoal/Controller/Root.pm \
-	lib/Charcoal/Model/Mongo.pm \
+	lib/Charcoal/Model/PgDB.pm \
+	lib/Charcoal/Schema/PgDB/Result/Acl.pm \
+	lib/Charcoal/Schema/PgDB/Result/CDomCat.pm \
+	lib/Charcoal/Schema/PgDB/Result/CDomain.pm \
+	lib/Charcoal/Schema/PgDB/Result/Category.pm \
+	lib/Charcoal/Schema/PgDB/Result/Customer.pm \
+	lib/Charcoal/Schema/PgDB/Result/Domain.pm \
+	lib/Charcoal/Schema/PgDB/Result/Expr.pm \
+	lib/Charcoal/Schema/PgDB/Result/GlDomCat.pm \
+	lib/Charcoal/Schema/PgDB/Result/Group.pm \
+	lib/Charcoal/Schema/PgDB/Result/Src.pm \
+	lib/Charcoal/Schema/PgDB/Result/SrcGroup.pm \
+	lib/Charcoal/Schema/PgDB/Result/SrcType.pm \
+	lib/Charcoal/Schema/PgDB/Result/Url.pm \
+	lib/Charcoal/Schema/PgDB/Result/User.pm \
 	lib/Charcoal/View/HTML.pm \
 	lib/Charcoal/View/JSON.pm \
+	lib/PgDB/Schema/Result/Acl.pm \
+	lib/PgDB/Schema/Result/CDomCat.pm \
+	lib/PgDB/Schema/Result/CDomain.pm \
+	lib/PgDB/Schema/Result/Category.pm \
+	lib/PgDB/Schema/Result/Customer.pm \
+	lib/PgDB/Schema/Result/Domain.pm \
+	lib/PgDB/Schema/Result/Expr.pm \
+	lib/PgDB/Schema/Result/GlDomCat.pm \
+	lib/PgDB/Schema/Result/Group.pm \
+	lib/PgDB/Schema/Result/Src.pm \
+	lib/PgDB/Schema/Result/SrcGroup.pm \
+	lib/PgDB/Schema/Result/SrcType.pm \
+	lib/PgDB/Schema/Result/Url.pm \
+	lib/PgDB/Schema/Result/User.pm \
 	script/charcoal_cgi.pl \
 	script/charcoal_create.pl \
 	script/charcoal_fastcgi.pl \
 	script/charcoal_server.pl \
 	script/charcoal_test.pl
-	$(NOECHO) $(POD2MAN) --section=1 --perm_rw=$(PERM_RW) -u \
+	$(NOECHO) $(POD2MAN) --section=$(MAN1EXT) --perm_rw=$(PERM_RW) \
 	  script/charcoal_cgi.pl $(INST_MAN1DIR)/charcoal_cgi.pl.$(MAN1EXT) \
 	  script/charcoal_create.pl $(INST_MAN1DIR)/charcoal_create.pl.$(MAN1EXT) \
 	  script/charcoal_fastcgi.pl $(INST_MAN1DIR)/charcoal_fastcgi.pl.$(MAN1EXT) \
 	  script/charcoal_server.pl $(INST_MAN1DIR)/charcoal_server.pl.$(MAN1EXT) \
 	  script/charcoal_test.pl $(INST_MAN1DIR)/charcoal_test.pl.$(MAN1EXT) 
-	$(NOECHO) $(POD2MAN) --section=3 --perm_rw=$(PERM_RW) -u \
+	$(NOECHO) $(POD2MAN) --section=$(MAN3EXT) --perm_rw=$(PERM_RW) \
 	  lib/Charcoal.pm $(INST_MAN3DIR)/Charcoal.$(MAN3EXT) \
+	  lib/Charcoal/Controller/Admin.pm $(INST_MAN3DIR)/Charcoal::Controller::Admin.$(MAN3EXT) \
+	  lib/Charcoal/Controller/Admin/Acls.pm $(INST_MAN3DIR)/Charcoal::Controller::Admin::Acls.$(MAN3EXT) \
+	  lib/Charcoal/Controller/Admin/Destinations.pm $(INST_MAN3DIR)/Charcoal::Controller::Admin::Destinations.$(MAN3EXT) \
+	  lib/Charcoal/Controller/Admin/SourceGroups.pm $(INST_MAN3DIR)/Charcoal::Controller::Admin::SourceGroups.$(MAN3EXT) \
+	  lib/Charcoal/Controller/Admin/Sources.pm $(INST_MAN3DIR)/Charcoal::Controller::Admin::Sources.$(MAN3EXT) \
+	  lib/Charcoal/Controller/Login.pm $(INST_MAN3DIR)/Charcoal::Controller::Login.$(MAN3EXT) \
+	  lib/Charcoal/Controller/Logout.pm $(INST_MAN3DIR)/Charcoal::Controller::Logout.$(MAN3EXT) \
 	  lib/Charcoal/Controller/Root.pm $(INST_MAN3DIR)/Charcoal::Controller::Root.$(MAN3EXT) \
-	  lib/Charcoal/Model/Mongo.pm $(INST_MAN3DIR)/Charcoal::Model::Mongo.$(MAN3EXT) \
+	  lib/Charcoal/Model/PgDB.pm $(INST_MAN3DIR)/Charcoal::Model::PgDB.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/Acl.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::Acl.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/CDomCat.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::CDomCat.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/CDomain.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::CDomain.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/Category.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::Category.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/Customer.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::Customer.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/Domain.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::Domain.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/Expr.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::Expr.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/GlDomCat.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::GlDomCat.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/Group.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::Group.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/Src.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::Src.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/SrcGroup.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::SrcGroup.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/SrcType.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::SrcType.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/Url.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::Url.$(MAN3EXT) \
+	  lib/Charcoal/Schema/PgDB/Result/User.pm $(INST_MAN3DIR)/Charcoal::Schema::PgDB::Result::User.$(MAN3EXT) \
 	  lib/Charcoal/View/HTML.pm $(INST_MAN3DIR)/Charcoal::View::HTML.$(MAN3EXT) \
-	  lib/Charcoal/View/JSON.pm $(INST_MAN3DIR)/Charcoal::View::JSON.$(MAN3EXT) 
+	  lib/Charcoal/View/JSON.pm $(INST_MAN3DIR)/Charcoal::View::JSON.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/Acl.pm $(INST_MAN3DIR)/PgDB::Schema::Result::Acl.$(MAN3EXT) 
+	$(NOECHO) $(POD2MAN) --section=$(MAN3EXT) --perm_rw=$(PERM_RW) \
+	  lib/PgDB/Schema/Result/CDomCat.pm $(INST_MAN3DIR)/PgDB::Schema::Result::CDomCat.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/CDomain.pm $(INST_MAN3DIR)/PgDB::Schema::Result::CDomain.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/Category.pm $(INST_MAN3DIR)/PgDB::Schema::Result::Category.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/Customer.pm $(INST_MAN3DIR)/PgDB::Schema::Result::Customer.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/Domain.pm $(INST_MAN3DIR)/PgDB::Schema::Result::Domain.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/Expr.pm $(INST_MAN3DIR)/PgDB::Schema::Result::Expr.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/GlDomCat.pm $(INST_MAN3DIR)/PgDB::Schema::Result::GlDomCat.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/Group.pm $(INST_MAN3DIR)/PgDB::Schema::Result::Group.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/Src.pm $(INST_MAN3DIR)/PgDB::Schema::Result::Src.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/SrcGroup.pm $(INST_MAN3DIR)/PgDB::Schema::Result::SrcGroup.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/SrcType.pm $(INST_MAN3DIR)/PgDB::Schema::Result::SrcType.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/Url.pm $(INST_MAN3DIR)/PgDB::Schema::Result::Url.$(MAN3EXT) \
+	  lib/PgDB/Schema/Result/User.pm $(INST_MAN3DIR)/PgDB::Schema::Result::User.$(MAN3EXT) 
 
 
 
@@ -473,14 +694,20 @@ manifypods : pure_all  \
 
 EXE_FILES = script/charcoal_cgi.pl script/charcoal_create.pl script/charcoal_fastcgi.pl script/charcoal_server.pl script/charcoal_test.pl
 
-pure_all :: $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_test.pl $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_create.pl $(INST_SCRIPT)/charcoal_fastcgi.pl
+pure_all :: $(INST_SCRIPT)/charcoal_create.pl $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_test.pl $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_fastcgi.pl
 	$(NOECHO) $(NOOP)
 
 realclean ::
 	$(RM_F) \
-	  $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_test.pl \
-	  $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_create.pl \
+	  $(INST_SCRIPT)/charcoal_create.pl $(INST_SCRIPT)/charcoal_server.pl \
+	  $(INST_SCRIPT)/charcoal_test.pl $(INST_SCRIPT)/charcoal_cgi.pl \
 	  $(INST_SCRIPT)/charcoal_fastcgi.pl 
+
+$(INST_SCRIPT)/charcoal_create.pl : script/charcoal_create.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_create.pl
+	$(CP) script/charcoal_create.pl $(INST_SCRIPT)/charcoal_create.pl
+	$(FIXIN) $(INST_SCRIPT)/charcoal_create.pl
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_create.pl
 
 $(INST_SCRIPT)/charcoal_server.pl : script/charcoal_server.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_server.pl
@@ -499,12 +726,6 @@ $(INST_SCRIPT)/charcoal_cgi.pl : script/charcoal_cgi.pl $(FIRST_MAKEFILE) $(INST
 	$(CP) script/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_cgi.pl
 	$(FIXIN) $(INST_SCRIPT)/charcoal_cgi.pl
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_cgi.pl
-
-$(INST_SCRIPT)/charcoal_create.pl : script/charcoal_create.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_create.pl
-	$(CP) script/charcoal_create.pl $(INST_SCRIPT)/charcoal_create.pl
-	$(FIXIN) $(INST_SCRIPT)/charcoal_create.pl
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_create.pl
 
 $(INST_SCRIPT)/charcoal_fastcgi.pl : script/charcoal_fastcgi.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_fastcgi.pl
@@ -561,7 +782,7 @@ realclean_subdirs :
 # Delete temporary files (via clean) and also delete dist files
 realclean purge ::  clean realclean_subdirs
 	- $(RM_F) \
-	  $(FIRST_MAKEFILE) $(MAKEFILE_OLD) 
+	  $(MAKEFILE_OLD) $(FIRST_MAKEFILE) 
 	- $(RM_RF) \
 	  MYMETA.yml $(DISTVNAME) 
 
@@ -709,89 +930,66 @@ doc__install : doc_site_install
 	$(NOECHO) $(ECHO) INSTALLDIRS not defined, defaulting to INSTALLDIRS=site
 
 pure_perl_install :: all
-	$(NOECHO) $(MOD_INSTALL) \
-		read "$(PERL_ARCHLIB)/auto/$(FULLEXT)/.packlist" \
-		write "$(DESTINSTALLARCHLIB)/auto/$(FULLEXT)/.packlist" \
-		"$(INST_LIB)" "$(DESTINSTALLPRIVLIB)" \
-		"$(INST_ARCHLIB)" "$(DESTINSTALLARCHLIB)" \
-		"$(INST_BIN)" "$(DESTINSTALLBIN)" \
-		"$(INST_SCRIPT)" "$(DESTINSTALLSCRIPT)" \
-		"$(INST_MAN1DIR)" "$(DESTINSTALLMAN1DIR)" \
-		"$(INST_MAN3DIR)" "$(DESTINSTALLMAN3DIR)"
+	$(NOECHO) umask 022; $(MOD_INSTALL) \
+		$(INST_LIB) $(DESTINSTALLPRIVLIB) \
+		$(INST_ARCHLIB) $(DESTINSTALLARCHLIB) \
+		$(INST_BIN) $(DESTINSTALLBIN) \
+		$(INST_SCRIPT) $(DESTINSTALLSCRIPT) \
+		$(INST_MAN1DIR) $(DESTINSTALLMAN1DIR) \
+		$(INST_MAN3DIR) $(DESTINSTALLMAN3DIR)
 	$(NOECHO) $(WARN_IF_OLD_PACKLIST) \
-		"$(SITEARCHEXP)/auto/$(FULLEXT)"
+		$(SITEARCHEXP)/auto/$(FULLEXT)
 
 
 pure_site_install :: all
-	$(NOECHO) $(MOD_INSTALL) \
-		read "$(SITEARCHEXP)/auto/$(FULLEXT)/.packlist" \
-		write "$(DESTINSTALLSITEARCH)/auto/$(FULLEXT)/.packlist" \
-		"$(INST_LIB)" "$(DESTINSTALLSITELIB)" \
-		"$(INST_ARCHLIB)" "$(DESTINSTALLSITEARCH)" \
-		"$(INST_BIN)" "$(DESTINSTALLSITEBIN)" \
-		"$(INST_SCRIPT)" "$(DESTINSTALLSITESCRIPT)" \
-		"$(INST_MAN1DIR)" "$(DESTINSTALLSITEMAN1DIR)" \
-		"$(INST_MAN3DIR)" "$(DESTINSTALLSITEMAN3DIR)"
+	$(NOECHO) umask 02; $(MOD_INSTALL) \
+		read $(SITEARCHEXP)/auto/$(FULLEXT)/.packlist \
+		write $(DESTINSTALLSITEARCH)/auto/$(FULLEXT)/.packlist \
+		$(INST_LIB) $(DESTINSTALLSITELIB) \
+		$(INST_ARCHLIB) $(DESTINSTALLSITEARCH) \
+		$(INST_BIN) $(DESTINSTALLSITEBIN) \
+		$(INST_SCRIPT) $(DESTINSTALLSITESCRIPT) \
+		$(INST_MAN1DIR) $(DESTINSTALLSITEMAN1DIR) \
+		$(INST_MAN3DIR) $(DESTINSTALLSITEMAN3DIR)
 	$(NOECHO) $(WARN_IF_OLD_PACKLIST) \
-		"$(PERL_ARCHLIB)/auto/$(FULLEXT)"
+		$(PERL_ARCHLIB)/auto/$(FULLEXT)
 
 pure_vendor_install :: all
-	$(NOECHO) $(MOD_INSTALL) \
-		read "$(VENDORARCHEXP)/auto/$(FULLEXT)/.packlist" \
-		write "$(DESTINSTALLVENDORARCH)/auto/$(FULLEXT)/.packlist" \
-		"$(INST_LIB)" "$(DESTINSTALLVENDORLIB)" \
-		"$(INST_ARCHLIB)" "$(DESTINSTALLVENDORARCH)" \
-		"$(INST_BIN)" "$(DESTINSTALLVENDORBIN)" \
-		"$(INST_SCRIPT)" "$(DESTINSTALLVENDORSCRIPT)" \
-		"$(INST_MAN1DIR)" "$(DESTINSTALLVENDORMAN1DIR)" \
-		"$(INST_MAN3DIR)" "$(DESTINSTALLVENDORMAN3DIR)"
+	$(NOECHO) umask 022; $(MOD_INSTALL) \
+		$(INST_LIB) $(DESTINSTALLVENDORLIB) \
+		$(INST_ARCHLIB) $(DESTINSTALLVENDORARCH) \
+		$(INST_BIN) $(DESTINSTALLVENDORBIN) \
+		$(INST_SCRIPT) $(DESTINSTALLVENDORSCRIPT) \
+		$(INST_MAN1DIR) $(DESTINSTALLVENDORMAN1DIR) \
+		$(INST_MAN3DIR) $(DESTINSTALLVENDORMAN3DIR)
 
 
 doc_perl_install :: all
-	$(NOECHO) $(ECHO) Appending installation info to "$(DESTINSTALLARCHLIB)/perllocal.pod"
-	-$(NOECHO) $(MKPATH) "$(DESTINSTALLARCHLIB)"
-	-$(NOECHO) $(DOC_INSTALL) \
-		"Module" "$(NAME)" \
-		"installed into" $(INSTALLPRIVLIB) \
-		LINKTYPE "$(LINKTYPE)" \
-		VERSION "$(VERSION)" \
-		EXE_FILES "$(EXE_FILES)" \
-		>> "$(DESTINSTALLARCHLIB)/perllocal.pod"
 
 doc_site_install :: all
-	$(NOECHO) $(ECHO) Appending installation info to "$(DESTINSTALLARCHLIB)/perllocal.pod"
-	-$(NOECHO) $(MKPATH) "$(DESTINSTALLARCHLIB)"
-	-$(NOECHO) $(DOC_INSTALL) \
+	$(NOECHO) $(ECHO) Appending installation info to $(DESTINSTALLSITEARCH)/perllocal.pod
+	-$(NOECHO) umask 02; $(MKPATH) $(DESTINSTALLSITEARCH)
+	-$(NOECHO) umask 02; $(DOC_INSTALL) \
 		"Module" "$(NAME)" \
-		"installed into" $(INSTALLSITELIB) \
+		"installed into" "$(INSTALLSITELIB)" \
 		LINKTYPE "$(LINKTYPE)" \
 		VERSION "$(VERSION)" \
 		EXE_FILES "$(EXE_FILES)" \
-		>> "$(DESTINSTALLARCHLIB)/perllocal.pod"
+		>> $(DESTINSTALLSITEARCH)/perllocal.pod
 
 doc_vendor_install :: all
-	$(NOECHO) $(ECHO) Appending installation info to "$(DESTINSTALLARCHLIB)/perllocal.pod"
-	-$(NOECHO) $(MKPATH) "$(DESTINSTALLARCHLIB)"
-	-$(NOECHO) $(DOC_INSTALL) \
-		"Module" "$(NAME)" \
-		"installed into" $(INSTALLVENDORLIB) \
-		LINKTYPE "$(LINKTYPE)" \
-		VERSION "$(VERSION)" \
-		EXE_FILES "$(EXE_FILES)" \
-		>> "$(DESTINSTALLARCHLIB)/perllocal.pod"
 
 
 uninstall :: uninstall_from_$(INSTALLDIRS)dirs
 	$(NOECHO) $(NOOP)
 
 uninstall_from_perldirs ::
-	$(NOECHO) $(UNINSTALL) "$(PERL_ARCHLIB)/auto/$(FULLEXT)/.packlist"
 
 uninstall_from_sitedirs ::
-	$(NOECHO) $(UNINSTALL) "$(SITEARCHEXP)/auto/$(FULLEXT)/.packlist"
+	$(NOECHO) $(UNINSTALL) $(SITEARCHEXP)/auto/$(FULLEXT)/.packlist
 
 uninstall_from_vendordirs ::
-	$(NOECHO) $(UNINSTALL) "$(VENDORARCHEXP)/auto/$(FULLEXT)/.packlist"
+
 
 
 # --- MakeMaker force section:
@@ -823,7 +1021,7 @@ $(FIRST_MAKEFILE) : Makefile.PL $(CONFIGDEP)
 
 # --- MakeMaker makeaperl section ---
 MAP_TARGET    = perl
-FULLPERL      = "/usr/bin/perl"
+FULLPERL      = /usr/bin/perl
 
 $(MAP_TARGET) :: static $(MAKE_APERL_FILE)
 	$(MAKE) $(USEMAKEFILE) $(MAKE_APERL_FILE) $@
@@ -831,7 +1029,7 @@ $(MAP_TARGET) :: static $(MAKE_APERL_FILE)
 $(MAKE_APERL_FILE) : $(FIRST_MAKEFILE) pm_to_blib
 	$(NOECHO) $(ECHO) Writing \"$(MAKE_APERL_FILE)\" for this $(MAP_TARGET)
 	$(NOECHO) $(PERLRUNINST) \
-		Makefile.PL DIR="" \
+		Makefile.PL DIR= \
 		MAKEFILE=$(MAKE_APERL_FILE) LINKTYPE=static \
 		MAKEAPERL=1 NORECURS=1 CCCDLFLAGS=
 
@@ -841,7 +1039,7 @@ $(MAKE_APERL_FILE) : $(FIRST_MAKEFILE) pm_to_blib
 TEST_VERBOSE=0
 TEST_TYPE=test_$(LINKTYPE)
 TEST_FILE = test.pl
-TEST_FILES = t/01app.t t/02pod.t t/03podcoverage.t t/model_Mongo.t t/view_HTML.t t/view_JSON.t
+TEST_FILES = t/01app.t t/02pod.t t/03podcoverage.t t/controller_Admin-Acls.t t/controller_Admin-Destinations.t t/controller_Admin-SourceGroups.t t/controller_Admin-Sources.t t/controller_Admin.t t/controller_Login.t t/controller_Logout.t t/model_Mongo.t t/model_Pg.t t/model_PgDB.t t/view_HTML.t t/view_JSON.t
 TESTDB_SW = -d
 
 testdb :: testdb_$(LINKTYPE)
@@ -872,18 +1070,21 @@ ppd :
 	$(NOECHO) $(ECHO) '    <AUTHOR>Nishant Sharma,,,</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Action::RenderView" />' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Authentication::Store::MongoDB" />' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Model::MongoDB" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Plugin::Authentication" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Plugin::Cache::FastMmap" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Plugin::ConfigLoader" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Plugin::Session::State::Cookie" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Plugin::Session::Store::Memcached::Fast" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Plugin::Static::Simple" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Catalyst::Runtime" VERSION="5.90079" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Config::General" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Data::Validate::IP" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="JSON::XS" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Moose::" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Plack::" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Starman::" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="namespace::autoclean" />' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="x86_64-linux-gnu-thread-multi-5.20" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="arm-linux-gnueabihf-thread-multi-64int-5.20" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    </IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '</SOFTPKG>' >> $(DISTNAME).ppd
@@ -894,10 +1095,50 @@ ppd :
 pm_to_blib : $(FIRST_MAKEFILE) $(TO_INST_PM)
 	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
 	  lib/Charcoal.pm blib/lib/Charcoal.pm \
+	  lib/Charcoal/Controller/Admin.pm blib/lib/Charcoal/Controller/Admin.pm \
+	  lib/Charcoal/Controller/Admin/Acls.pm blib/lib/Charcoal/Controller/Admin/Acls.pm \
+	  lib/Charcoal/Controller/Admin/Destinations.pm blib/lib/Charcoal/Controller/Admin/Destinations.pm \
+	  lib/Charcoal/Controller/Admin/SourceGroups.pm blib/lib/Charcoal/Controller/Admin/SourceGroups.pm \
+	  lib/Charcoal/Controller/Admin/Sources.pm blib/lib/Charcoal/Controller/Admin/Sources.pm \
+	  lib/Charcoal/Controller/Admin/geany_run_script.sh blib/lib/Charcoal/Controller/Admin/geany_run_script.sh \
+	  lib/Charcoal/Controller/Login.pm blib/lib/Charcoal/Controller/Login.pm \
+	  lib/Charcoal/Controller/Logout.pm blib/lib/Charcoal/Controller/Logout.pm \
 	  lib/Charcoal/Controller/Root.pm blib/lib/Charcoal/Controller/Root.pm \
-	  lib/Charcoal/Model/Mongo.pm blib/lib/Charcoal/Model/Mongo.pm \
+	  lib/Charcoal/Model/PgDB.pm blib/lib/Charcoal/Model/PgDB.pm \
+	  lib/Charcoal/Model/PgDB.pm.back blib/lib/Charcoal/Model/PgDB.pm.back \
+	  lib/Charcoal/Schema/PgDB.pm blib/lib/Charcoal/Schema/PgDB.pm \
+	  lib/Charcoal/Schema/PgDB/Result/Acl.pm blib/lib/Charcoal/Schema/PgDB/Result/Acl.pm \
+	  lib/Charcoal/Schema/PgDB/Result/CDomCat.pm blib/lib/Charcoal/Schema/PgDB/Result/CDomCat.pm \
+	  lib/Charcoal/Schema/PgDB/Result/CDomain.pm blib/lib/Charcoal/Schema/PgDB/Result/CDomain.pm \
+	  lib/Charcoal/Schema/PgDB/Result/Category.pm blib/lib/Charcoal/Schema/PgDB/Result/Category.pm \
+	  lib/Charcoal/Schema/PgDB/Result/Customer.pm blib/lib/Charcoal/Schema/PgDB/Result/Customer.pm \
+	  lib/Charcoal/Schema/PgDB/Result/Domain.pm blib/lib/Charcoal/Schema/PgDB/Result/Domain.pm \
+	  lib/Charcoal/Schema/PgDB/Result/Expr.pm blib/lib/Charcoal/Schema/PgDB/Result/Expr.pm \
+	  lib/Charcoal/Schema/PgDB/Result/GlDomCat.pm blib/lib/Charcoal/Schema/PgDB/Result/GlDomCat.pm \
+	  lib/Charcoal/Schema/PgDB/Result/Group.pm blib/lib/Charcoal/Schema/PgDB/Result/Group.pm \
+	  lib/Charcoal/Schema/PgDB/Result/Src.pm blib/lib/Charcoal/Schema/PgDB/Result/Src.pm \
+	  lib/Charcoal/Schema/PgDB/Result/SrcGroup.pm blib/lib/Charcoal/Schema/PgDB/Result/SrcGroup.pm \
+	  lib/Charcoal/Schema/PgDB/Result/SrcType.pm blib/lib/Charcoal/Schema/PgDB/Result/SrcType.pm \
+	  lib/Charcoal/Schema/PgDB/Result/Url.pm blib/lib/Charcoal/Schema/PgDB/Result/Url.pm \
+	  lib/Charcoal/Schema/PgDB/Result/User.pm blib/lib/Charcoal/Schema/PgDB/Result/User.pm \
 	  lib/Charcoal/View/HTML.pm blib/lib/Charcoal/View/HTML.pm \
-	  lib/Charcoal/View/JSON.pm blib/lib/Charcoal/View/JSON.pm 
+	  lib/Charcoal/View/JSON.pm blib/lib/Charcoal/View/JSON.pm \
+	  lib/PgDB/Schema.pm blib/lib/PgDB/Schema.pm \
+	  lib/PgDB/Schema/Result/Acl.pm blib/lib/PgDB/Schema/Result/Acl.pm \
+	  lib/PgDB/Schema/Result/CDomCat.pm blib/lib/PgDB/Schema/Result/CDomCat.pm \
+	  lib/PgDB/Schema/Result/CDomain.pm blib/lib/PgDB/Schema/Result/CDomain.pm 
+	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
+	  lib/PgDB/Schema/Result/Category.pm blib/lib/PgDB/Schema/Result/Category.pm \
+	  lib/PgDB/Schema/Result/Customer.pm blib/lib/PgDB/Schema/Result/Customer.pm \
+	  lib/PgDB/Schema/Result/Domain.pm blib/lib/PgDB/Schema/Result/Domain.pm \
+	  lib/PgDB/Schema/Result/Expr.pm blib/lib/PgDB/Schema/Result/Expr.pm \
+	  lib/PgDB/Schema/Result/GlDomCat.pm blib/lib/PgDB/Schema/Result/GlDomCat.pm \
+	  lib/PgDB/Schema/Result/Group.pm blib/lib/PgDB/Schema/Result/Group.pm \
+	  lib/PgDB/Schema/Result/Src.pm blib/lib/PgDB/Schema/Result/Src.pm \
+	  lib/PgDB/Schema/Result/SrcGroup.pm blib/lib/PgDB/Schema/Result/SrcGroup.pm \
+	  lib/PgDB/Schema/Result/SrcType.pm blib/lib/PgDB/Schema/Result/SrcType.pm \
+	  lib/PgDB/Schema/Result/Url.pm blib/lib/PgDB/Schema/Result/Url.pm \
+	  lib/PgDB/Schema/Result/User.pm blib/lib/PgDB/Schema/Result/User.pm 
 	$(NOECHO) $(TOUCH) pm_to_blib
 
 
@@ -909,25 +1150,6 @@ pm_to_blib : $(FIRST_MAKEFILE) $(TO_INST_PM)
 
 # End.
 # Postamble by Module::Install 1.14
-# --- Module::Install::Admin::Makefile section:
-
-realclean purge ::
-	$(RM_F) $(DISTVNAME).tar$(SUFFIX)
-	$(RM_F) MANIFEST.bak _build
-	$(PERL) "-Ilib" "-MModule::Install::Admin" -e "remove_meta()"
-	$(RM_RF) inc
-
-reset :: purge
-
-upload :: test dist
-	cpan-upload -verbose $(DISTVNAME).tar$(SUFFIX)
-
-grok ::
-	perldoc Module::Install
-
-distsign ::
-	cpansign -s
-
 # --- Module::Install::AutoInstall section:
 
 config :: installdeps
@@ -937,20 +1159,20 @@ checkdeps ::
 	$(PERL) Makefile.PL --checkdeps
 
 installdeps ::
-	$(NOECHO) $(NOOP)
+	$(PERL) Makefile.PL --config= --installdeps=Catalyst::Runtime,5.90079,Catalyst::Plugin::Session::Store::Memcached::Fast,0
 
 installdeps_notest ::
-	$(NOECHO) $(NOOP)
+	$(PERL) Makefile.PL --config=notest,1 --installdeps=Catalyst::Runtime,5.90079,Catalyst::Plugin::Session::Store::Memcached::Fast,0
 
 upgradedeps ::
-	$(PERL) Makefile.PL --config= --upgradedeps=Test::More,0.88,Catalyst::Runtime,5.90079,Catalyst::Plugin::ConfigLoader,0,Catalyst::Plugin::Static::Simple,0,Catalyst::Action::RenderView,0,Catalyst::Model::MongoDB,0,Catalyst::Plugin::Cache::FastMmap,0,Catalyst::Authentication::Store::MongoDB,0,Moose,0,namespace::autoclean,0,Config::General,0,Plack,0,Starman,0
+	$(PERL) Makefile.PL --config= --upgradedeps=Catalyst::Runtime,5.90079,Catalyst::Plugin::Session::Store::Memcached::Fast,0,Test::More,0.88,Catalyst::Plugin::ConfigLoader,0,Catalyst::Plugin::Static::Simple,0,Catalyst::Action::RenderView,0,Catalyst::Plugin::Cache::FastMmap,0,Catalyst::Plugin::Authentication,0,Catalyst::Plugin::Session::State::Cookie,0,Moose,0,namespace::autoclean,0,Config::General,0,Plack,0,Starman,0,JSON::XS,0,Data::Validate::IP,0
 
 upgradedeps_notest ::
-	$(PERL) Makefile.PL --config=notest,1 --upgradedeps=Test::More,0.88,Catalyst::Runtime,5.90079,Catalyst::Plugin::ConfigLoader,0,Catalyst::Plugin::Static::Simple,0,Catalyst::Action::RenderView,0,Catalyst::Model::MongoDB,0,Catalyst::Plugin::Cache::FastMmap,0,Catalyst::Authentication::Store::MongoDB,0,Moose,0,namespace::autoclean,0,Config::General,0,Plack,0,Starman,0
+	$(PERL) Makefile.PL --config=notest,1 --upgradedeps=Catalyst::Runtime,5.90079,Catalyst::Plugin::Session::Store::Memcached::Fast,0,Test::More,0.88,Catalyst::Plugin::ConfigLoader,0,Catalyst::Plugin::Static::Simple,0,Catalyst::Action::RenderView,0,Catalyst::Plugin::Cache::FastMmap,0,Catalyst::Plugin::Authentication,0,Catalyst::Plugin::Session::State::Cookie,0,Moose,0,namespace::autoclean,0,Config::General,0,Plack,0,Starman,0,JSON::XS,0,Data::Validate::IP,0
 
 listdeps ::
-	@$(PERL) -le "print for @ARGV" 
+	@$(PERL) -le "print for @ARGV" Catalyst::Runtime Catalyst::Plugin::Session::Store::Memcached::Fast
 
 listalldeps ::
-	@$(PERL) -le "print for @ARGV" Test::More Catalyst::Runtime Catalyst::Plugin::ConfigLoader Catalyst::Plugin::Static::Simple Catalyst::Action::RenderView Catalyst::Model::MongoDB Catalyst::Plugin::Cache::FastMmap Catalyst::Authentication::Store::MongoDB Moose namespace::autoclean Config::General Plack Starman
+	@$(PERL) -le "print for @ARGV" Catalyst::Runtime Catalyst::Plugin::Session::Store::Memcached::Fast Test::More Catalyst::Plugin::ConfigLoader Catalyst::Plugin::Static::Simple Catalyst::Action::RenderView Catalyst::Plugin::Cache::FastMmap Catalyst::Plugin::Authentication Catalyst::Plugin::Session::State::Cookie Moose namespace::autoclean Config::General Plack Starman JSON::XS Data::Validate::IP
 

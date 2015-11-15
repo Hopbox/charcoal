@@ -13,15 +13,19 @@ requires 'Catalyst::Runtime' => '5.90079';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::Static::Simple';
 requires 'Catalyst::Action::RenderView';
-requires 'Catalyst::Model::MongoDB';
 requires 'Catalyst::Plugin::Cache::FastMmap';
-requires 'Catalyst::Authentication::Store::MongoDB';
+requires 'Catalyst::Plugin::Authentication';
+requires 'Catalyst::Plugin::Session::State::Cookie';
+requires 'Catalyst::Plugin::Session::Store::Memcached::Fast';
 requires 'Moose';
 requires 'namespace::autoclean';
 requires 'Config::General'; # This should reflect the config file format you've chosen
-                 # See Catalyst::Plugin::ConfigLoader for supported formats
+# See Catalyst::Plugin::ConfigLoader for supported formats
 requires 'Plack';
 requires 'Starman';
+
+requires 'JSON::XS';
+requires 'Data::Validate::IP';
 
 test_requires 'Test::More' => '0.88';
 catalyst;

@@ -104,13 +104,13 @@ while(<>){
 
 	my @chunks = split(/\s+/);
 
-	print STDERR scalar(@chunks) . " chunks received \n";
+	print STDERR scalar(@chunks) . " chunks received \n" if $DEBUG;
 
 	if ($chunks[0] =~ m/^\d+/){
 	### Concurrency enabled
 		print STDERR "Concurrency Enabled\n" if $DEBUG;
 		my ($chan, $url, $clientip, $ident, $method, $blah, $proxyip, $proxyport) = split(/\s+/);
-        print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n";
+        print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n" if $DEBUG;
     	my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
 					PeerPort   => $charcoal_port,
 					Proto	   => $proto,
@@ -133,7 +133,7 @@ while(<>){
 	### Concurrency disabled
 		print STDERR "Concurrency Disabled\n" if $DEBUG;
 		my ($url, $clientip, $ident, $method, $blah, $proxyip, $proxyport) = split(/\s+/);
-        print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n";
+        print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n" if $DEBUG;
     	my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
 					PeerPort   => $charcoal_port,
 					Proto	   => $proto,

@@ -1,5 +1,7 @@
 <!-- BEGIN site/footer -->
- <footer>
-        <p id="copyright">&copy; [% site.copyright %]</p>
- </footer>
+    </div>
+        <!-- /#wrapper -->
+    <div id="page-footer">
+		<p align="center">&copy; Unmukti Technology</p>
+    </div>
 <!-- END site/footer -->

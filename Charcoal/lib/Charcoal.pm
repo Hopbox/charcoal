@@ -2,7 +2,7 @@ package Charcoal;
 use Moose;
 use namespace::autoclean;
 
-use Catalyst::Runtime 5.80;
+use Catalyst::Runtime 5.90;
 
 # Set flags and add plugins for the application.
 #
@@ -22,14 +22,21 @@ use Catalyst qw/
     Static::Simple
     Cache::FastMmap
 
+    Authentication
+    Session
+    Session::State::Cookie
+    Session::Store::FastMmap
+
 /;
 
-use Catalyst::Model::MongoDB;
-use Catalyst::Authentication::Store::MongoDB;
+use Catalyst::Authentication::Store::DBIx::Class;
+
+use JSON::XS;
+use Data::Validate::IP qw(is_ipv4 is_innet_ipv4);
 
 extends 'Catalyst';
 
-our $VERSION = '0.01';
+our $VERSION = '0.03';
 
 # Configure the application.
 #
