@@ -61,10 +61,10 @@
                                     	<tr>
 											<td>[% grp.name %]</td>
                                             <td style="width: 40%">
-                                            <a href="[%c.uri_for('listmembers') %]/[% grp.id %]" class="btn btn-info btn-sm" role="button" title="View / Edit Members of this Group">View / Edit Members</a>
+                                            <a href="[% c.uri_for(c.controller.action_for('listmembers'), [grp.id]) %]" class="btn btn-info btn-sm" role="button" title="View / Edit Members of this Group">View / Edit Members</a>
 												
 												
-                                            <button type="button" class="btn btn-danger btn-sm" title="Delete this Group">Delete Group</button>
+                                            <a href="[% c.uri_for(c.controller.action_for('delgroup'), [grp.id]) %]" type="button" class="btn btn-danger btn-sm" title="Delete this Group">Delete Group</a>
                                             </td>
                                             
                                         </tr>

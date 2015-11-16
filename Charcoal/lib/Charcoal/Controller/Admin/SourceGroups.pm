@@ -69,6 +69,37 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 	$c->detach;
 }
 
+sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
+	my ( $self, $c, $grp ) = @_;
+	
+	## Find all the Src objects associated with this group
+	my @members = $c->model('PgDB::Src')->search( 
+							{ 
+								customer		=>	$c->user->customer->id,
+								'src_groups.grp' => $grp,
+							},
+							{ 
+								join => 'src_groups' 
+							}
+					);
+	## Delete those objects
+	foreach my $member (@members){
+		$c->log->debug("DELGRP: Deleting member " . $member->value); 
+		$member->delete();
+	}
+	## Delete the group
+	
+	my $obj = $c->model('PgDB::Group')->find($grp);
+	
+	$c->log->debug("DELGRP: Deleting group " . $obj->name);
+	
+	$obj->delete();
+	
+	#$c->response->body('Matched Charcoal::Controller::Admin::SourceGroups in Admin::SourceGroups.');	
+	$c->res->redirect($c->uri_for('list'));
+	$c->detach;
+}
+
 sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 	my ($self, $c, $grp_id) = @_;
 	
