@@ -1,0 +1,1028 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.4.1
+-- Dumped by pg_dump version 9.4.5
+-- Started on 2015-11-16 11:38:33 IST
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+DROP DATABASE charcoaldb;
+--
+-- TOC entry 2736 (class 1262 OID 16386)
+-- Name: charcoaldb; Type: DATABASE; Schema: -; Owner: charcoal
+--
+
+CREATE DATABASE charcoaldb WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'C' LC_CTYPE = 'C';
+
+
+ALTER DATABASE charcoaldb OWNER TO charcoal;
+
+\connect charcoaldb
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- TOC entry 6 (class 2615 OID 2200)
+-- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA public;
+
+
+ALTER SCHEMA public OWNER TO postgres;
+
+--
+-- TOC entry 2737 (class 0 OID 0)
+-- Dependencies: 6
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
+--
+
+COMMENT ON SCHEMA public IS 'standard public schema';
+
+
+--
+-- TOC entry 199 (class 3079 OID 12450)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 2739 (class 0 OID 0)
+-- Dependencies: 199
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 189 (class 1259 OID 16659)
+-- Name: acls; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE acls (
+    id integer NOT NULL,
+    customer integer NOT NULL,
+    acl jsonb,
+    seq integer
+);
+
+
+ALTER TABLE acls OWNER TO charcoal;
+
+--
+-- TOC entry 188 (class 1259 OID 16657)
+-- Name: acls_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE acls_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE acls_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2740 (class 0 OID 0)
+-- Dependencies: 188
+-- Name: acls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE acls_id_seq OWNED BY acls.id;
+
+
+--
+-- TOC entry 187 (class 1259 OID 16610)
+-- Name: c_dom_cat; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE c_dom_cat (
+    id integer NOT NULL,
+    domain integer,
+    category integer
+);
+
+
+ALTER TABLE c_dom_cat OWNER TO charcoal;
+
+--
+-- TOC entry 186 (class 1259 OID 16608)
+-- Name: c_dom_cat_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE c_dom_cat_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE c_dom_cat_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2741 (class 0 OID 0)
+-- Dependencies: 186
+-- Name: c_dom_cat_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE c_dom_cat_id_seq OWNED BY c_dom_cat.id;
+
+
+--
+-- TOC entry 185 (class 1259 OID 16577)
+-- Name: c_domains; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE c_domains (
+    id integer NOT NULL,
+    domain text,
+    customer integer
+);
+
+
+ALTER TABLE c_domains OWNER TO charcoal;
+
+--
+-- TOC entry 184 (class 1259 OID 16575)
+-- Name: c_domains_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE c_domains_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE c_domains_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2742 (class 0 OID 0)
+-- Dependencies: 184
+-- Name: c_domains_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE c_domains_id_seq OWNED BY c_domains.id;
+
+
+--
+-- TOC entry 172 (class 1259 OID 16388)
+-- Name: categories; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE categories (
+    id integer NOT NULL,
+    category character varying(128),
+    description text,
+    customer integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE categories OWNER TO charcoal;
+
+--
+-- TOC entry 173 (class 1259 OID 16394)
+-- Name: categories_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE categories_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2743 (class 0 OID 0)
+-- Dependencies: 173
+-- Name: categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE categories_id_seq OWNED BY categories.id;
+
+
+--
+-- TOC entry 174 (class 1259 OID 16396)
+-- Name: customers; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE customers (
+    id integer NOT NULL,
+    mongoid character(64),
+    api character varying(128),
+    name character varying(128)
+);
+
+
+ALTER TABLE customers OWNER TO charcoal;
+
+--
+-- TOC entry 175 (class 1259 OID 16399)
+-- Name: customers_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE customers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE customers_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2744 (class 0 OID 0)
+-- Dependencies: 175
+-- Name: customers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE customers_id_seq OWNED BY customers.id;
+
+
+--
+-- TOC entry 176 (class 1259 OID 16401)
+-- Name: domains; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE domains (
+    id integer NOT NULL,
+    domain text
+);
+
+
+ALTER TABLE domains OWNER TO charcoal;
+
+--
+-- TOC entry 177 (class 1259 OID 16407)
+-- Name: domains_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE domains_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE domains_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2745 (class 0 OID 0)
+-- Dependencies: 177
+-- Name: domains_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE domains_id_seq OWNED BY domains.id;
+
+
+--
+-- TOC entry 178 (class 1259 OID 16409)
+-- Name: exprs; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE exprs (
+    id integer NOT NULL,
+    expr text,
+    categories jsonb
+);
+
+
+ALTER TABLE exprs OWNER TO charcoal;
+
+--
+-- TOC entry 179 (class 1259 OID 16415)
+-- Name: exprs_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE exprs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE exprs_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2746 (class 0 OID 0)
+-- Dependencies: 179
+-- Name: exprs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE exprs_id_seq OWNED BY exprs.id;
+
+
+--
+-- TOC entry 183 (class 1259 OID 16527)
+-- Name: gl_dom_cat; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE gl_dom_cat (
+    id integer NOT NULL,
+    domain integer,
+    category integer
+);
+
+
+ALTER TABLE gl_dom_cat OWNER TO charcoal;
+
+--
+-- TOC entry 182 (class 1259 OID 16525)
+-- Name: gl_dom_cat_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE gl_dom_cat_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE gl_dom_cat_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2747 (class 0 OID 0)
+-- Dependencies: 182
+-- Name: gl_dom_cat_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE gl_dom_cat_id_seq OWNED BY gl_dom_cat.id;
+
+
+--
+-- TOC entry 194 (class 1259 OID 16744)
+-- Name: groups; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE groups (
+    id integer NOT NULL,
+    name text,
+    customer integer
+);
+
+
+ALTER TABLE groups OWNER TO charcoal;
+
+--
+-- TOC entry 193 (class 1259 OID 16742)
+-- Name: groups_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE groups_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2748 (class 0 OID 0)
+-- Dependencies: 193
+-- Name: groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE groups_id_seq OWNED BY groups.id;
+
+
+--
+-- TOC entry 192 (class 1259 OID 16728)
+-- Name: src; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE src (
+    id integer NOT NULL,
+    value text,
+    src_type integer,
+    customer integer
+);
+
+
+ALTER TABLE src OWNER TO charcoal;
+
+--
+-- TOC entry 196 (class 1259 OID 16755)
+-- Name: src_groups; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE src_groups (
+    id integer NOT NULL,
+    grp integer,
+    member integer
+);
+
+
+ALTER TABLE src_groups OWNER TO charcoal;
+
+--
+-- TOC entry 195 (class 1259 OID 16753)
+-- Name: src_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE src_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE src_groups_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2749 (class 0 OID 0)
+-- Dependencies: 195
+-- Name: src_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE src_groups_id_seq OWNED BY src_groups.id;
+
+
+--
+-- TOC entry 191 (class 1259 OID 16726)
+-- Name: src_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE src_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE src_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2750 (class 0 OID 0)
+-- Dependencies: 191
+-- Name: src_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE src_id_seq OWNED BY src.id;
+
+
+--
+-- TOC entry 190 (class 1259 OID 16673)
+-- Name: src_types; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE src_types (
+    type character varying(255),
+    value integer NOT NULL
+);
+
+
+ALTER TABLE src_types OWNER TO charcoal;
+
+--
+-- TOC entry 180 (class 1259 OID 16417)
+-- Name: urls; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE urls (
+    id integer NOT NULL,
+    url text,
+    categories jsonb
+);
+
+
+ALTER TABLE urls OWNER TO charcoal;
+
+--
+-- TOC entry 181 (class 1259 OID 16423)
+-- Name: urls_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE urls_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE urls_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2751 (class 0 OID 0)
+-- Dependencies: 181
+-- Name: urls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE urls_id_seq OWNED BY urls.id;
+
+
+--
+-- TOC entry 198 (class 1259 OID 16823)
+-- Name: users; Type: TABLE; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE TABLE users (
+    id integer NOT NULL,
+    username character varying(64),
+    password character varying(16),
+    firstname character varying(64),
+    lastname character varying(64),
+    active integer,
+    customer integer
+);
+
+
+ALTER TABLE users OWNER TO charcoal;
+
+--
+-- TOC entry 197 (class 1259 OID 16821)
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: charcoal
+--
+
+CREATE SEQUENCE users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE users_id_seq OWNER TO charcoal;
+
+--
+-- TOC entry 2752 (class 0 OID 0)
+-- Dependencies: 197
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: charcoal
+--
+
+ALTER SEQUENCE users_id_seq OWNED BY users.id;
+
+
+--
+-- TOC entry 2568 (class 2604 OID 16662)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY acls ALTER COLUMN id SET DEFAULT nextval('acls_id_seq'::regclass);
+
+
+--
+-- TOC entry 2567 (class 2604 OID 16613)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY c_dom_cat ALTER COLUMN id SET DEFAULT nextval('c_dom_cat_id_seq'::regclass);
+
+
+--
+-- TOC entry 2566 (class 2604 OID 16580)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY c_domains ALTER COLUMN id SET DEFAULT nextval('c_domains_id_seq'::regclass);
+
+
+--
+-- TOC entry 2559 (class 2604 OID 16425)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY categories ALTER COLUMN id SET DEFAULT nextval('categories_id_seq'::regclass);
+
+
+--
+-- TOC entry 2561 (class 2604 OID 16426)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY customers ALTER COLUMN id SET DEFAULT nextval('customers_id_seq'::regclass);
+
+
+--
+-- TOC entry 2562 (class 2604 OID 16427)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY domains ALTER COLUMN id SET DEFAULT nextval('domains_id_seq'::regclass);
+
+
+--
+-- TOC entry 2563 (class 2604 OID 16428)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY exprs ALTER COLUMN id SET DEFAULT nextval('exprs_id_seq'::regclass);
+
+
+--
+-- TOC entry 2565 (class 2604 OID 16530)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY gl_dom_cat ALTER COLUMN id SET DEFAULT nextval('gl_dom_cat_id_seq'::regclass);
+
+
+--
+-- TOC entry 2570 (class 2604 OID 16747)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY groups ALTER COLUMN id SET DEFAULT nextval('groups_id_seq'::regclass);
+
+
+--
+-- TOC entry 2569 (class 2604 OID 16731)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY src ALTER COLUMN id SET DEFAULT nextval('src_id_seq'::regclass);
+
+
+--
+-- TOC entry 2571 (class 2604 OID 16758)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY src_groups ALTER COLUMN id SET DEFAULT nextval('src_groups_id_seq'::regclass);
+
+
+--
+-- TOC entry 2564 (class 2604 OID 16429)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY urls ALTER COLUMN id SET DEFAULT nextval('urls_id_seq'::regclass);
+
+
+--
+-- TOC entry 2572 (class 2604 OID 16826)
+-- Name: id; Type: DEFAULT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
+
+
+--
+-- TOC entry 2592 (class 2606 OID 16615)
+-- Name: c_dom_cat_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY c_dom_cat
+    ADD CONSTRAINT c_dom_cat_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2590 (class 2606 OID 16585)
+-- Name: c_domains_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY c_domains
+    ADD CONSTRAINT c_domains_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2609 (class 2606 OID 16828)
+-- Name: c_users_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT c_users_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2574 (class 2606 OID 16431)
+-- Name: categories_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY categories
+    ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2578 (class 2606 OID 16433)
+-- Name: customers_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY customers
+    ADD CONSTRAINT customers_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2580 (class 2606 OID 16435)
+-- Name: domains_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY domains
+    ADD CONSTRAINT domains_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2583 (class 2606 OID 16437)
+-- Name: exprs_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY exprs
+    ADD CONSTRAINT exprs_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2587 (class 2606 OID 16532)
+-- Name: gl_dom_cat_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY gl_dom_cat
+    ADD CONSTRAINT gl_dom_cat_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2605 (class 2606 OID 16752)
+-- Name: groups_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY groups
+    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2599 (class 2606 OID 16667)
+-- Name: rules_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY acls
+    ADD CONSTRAINT rules_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2607 (class 2606 OID 16760)
+-- Name: src_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY src_groups
+    ADD CONSTRAINT src_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2603 (class 2606 OID 16736)
+-- Name: src_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY src
+    ADD CONSTRAINT src_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2601 (class 2606 OID 16677)
+-- Name: src_types_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY src_types
+    ADD CONSTRAINT src_types_pkey PRIMARY KEY (value);
+
+
+--
+-- TOC entry 2585 (class 2606 OID 16439)
+-- Name: urls_pkey; Type: CONSTRAINT; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+ALTER TABLE ONLY urls
+    ADD CONSTRAINT urls_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2594 (class 1259 OID 16813)
+-- Name: acls_acl_idx; Type: INDEX; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE INDEX acls_acl_idx ON acls USING gin (acl);
+
+
+--
+-- TOC entry 2595 (class 1259 OID 16812)
+-- Name: acls_acl_src_dst_idx; Type: INDEX; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE INDEX acls_acl_src_dst_idx ON acls USING gin (((acl -> 'src'::text)), ((acl -> 'dst'::text)));
+
+
+--
+-- TOC entry 2596 (class 1259 OID 16791)
+-- Name: acls_customer_idx; Type: INDEX; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE INDEX acls_customer_idx ON acls USING btree (customer);
+
+
+--
+-- TOC entry 2597 (class 1259 OID 16814)
+-- Name: acls_sequence_idx; Type: INDEX; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE INDEX acls_sequence_idx ON acls USING btree (seq DESC);
+
+
+--
+-- TOC entry 2576 (class 1259 OID 16790)
+-- Name: customers_api_idx; Type: INDEX; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE UNIQUE INDEX customers_api_idx ON customers USING btree (api);
+
+
+--
+-- TOC entry 2575 (class 1259 OID 16806)
+-- Name: fki_categories_customer_fkey; Type: INDEX; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE INDEX fki_categories_customer_fkey ON categories USING btree (customer);
+
+
+--
+-- TOC entry 2593 (class 1259 OID 16626)
+-- Name: idx_c_dom_cat; Type: INDEX; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE INDEX idx_c_dom_cat ON c_dom_cat USING btree (domain, category);
+
+
+--
+-- TOC entry 2588 (class 1259 OID 16568)
+-- Name: idx_dom_cat; Type: INDEX; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE INDEX idx_dom_cat ON gl_dom_cat USING btree (domain, category);
+
+
+--
+-- TOC entry 2581 (class 1259 OID 16543)
+-- Name: idx_domain; Type: INDEX; Schema: public; Owner: charcoal; Tablespace: 
+--
+
+CREATE INDEX idx_domain ON domains USING btree (domain);
+
+
+--
+-- TOC entry 2615 (class 2606 OID 16807)
+-- Name: c_dom_cat_categories; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY c_dom_cat
+    ADD CONSTRAINT c_dom_cat_categories FOREIGN KEY (category) REFERENCES categories(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2614 (class 2606 OID 16621)
+-- Name: c_dom_cat_domain_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY c_dom_cat
+    ADD CONSTRAINT c_dom_cat_domain_fkey FOREIGN KEY (domain) REFERENCES c_domains(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2613 (class 2606 OID 16586)
+-- Name: c_domains_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY c_domains
+    ADD CONSTRAINT c_domains_fkey FOREIGN KEY (customer) REFERENCES customers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2622 (class 2606 OID 16829)
+-- Name: c_users_customer_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT c_users_customer_fkey FOREIGN KEY (customer) REFERENCES customers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2610 (class 2606 OID 16801)
+-- Name: categories_customer_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY categories
+    ADD CONSTRAINT categories_customer_fkey FOREIGN KEY (customer) REFERENCES customers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2612 (class 2606 OID 16538)
+-- Name: gl_dom_cat_category_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY gl_dom_cat
+    ADD CONSTRAINT gl_dom_cat_category_fkey FOREIGN KEY (category) REFERENCES categories(id);
+
+
+--
+-- TOC entry 2611 (class 2606 OID 16533)
+-- Name: gl_dom_cat_domain_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY gl_dom_cat
+    ADD CONSTRAINT gl_dom_cat_domain_fkey FOREIGN KEY (domain) REFERENCES domains(id);
+
+
+--
+-- TOC entry 2619 (class 2606 OID 16782)
+-- Name: groups_customer_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY groups
+    ADD CONSTRAINT groups_customer_fkey FOREIGN KEY (customer) REFERENCES customers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2616 (class 2606 OID 16668)
+-- Name: rules_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY acls
+    ADD CONSTRAINT rules_fkey FOREIGN KEY (customer) REFERENCES customers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2618 (class 2606 OID 16777)
+-- Name: src_customer_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY src
+    ADD CONSTRAINT src_customer_fkey FOREIGN KEY (customer) REFERENCES customers(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2620 (class 2606 OID 16761)
+-- Name: src_groups_grp_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY src_groups
+    ADD CONSTRAINT src_groups_grp_fkey FOREIGN KEY (grp) REFERENCES groups(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2621 (class 2606 OID 16766)
+-- Name: src_groups_member_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY src_groups
+    ADD CONSTRAINT src_groups_member_fkey FOREIGN KEY (member) REFERENCES src(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 2617 (class 2606 OID 16737)
+-- Name: src_src_type_fkey; Type: FK CONSTRAINT; Schema: public; Owner: charcoal
+--
+
+ALTER TABLE ONLY src
+    ADD CONSTRAINT src_src_type_fkey FOREIGN KEY (src_type) REFERENCES src_types(value);
+
+
+--
+-- TOC entry 2738 (class 0 OID 0)
+-- Dependencies: 6
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+-- Completed on 2015-11-16 11:38:48 IST
+
+--
+-- PostgreSQL database dump complete
+--
+
