@@ -42,6 +42,7 @@ sub list :Chained('base') :PathPart('list') :Args(0){
 		push @grp_arr, \%grp_hash;
 	}
     
+    $c->stash->{add_submit_url} = $c->uri_for('addgroup');
     $c->stash->{grp_list} = \@grp_arr;
     $c->stash->{template} = 'sourcegroups.tt2';
     
@@ -50,10 +51,28 @@ sub list :Chained('base') :PathPart('list') :Args(0){
     #$c->response->body('Matched Charcoal::Controller::Admin::SourceGroups in Admin::SourceGroups.');
 }
 
+sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
+	my ( $self, $c ) = @_;
+	
+	my $groupname = $c->request->params->{groupname};
+	
+	$c->log->debug("ADDGRP: Attempting to add group " . $groupname);
+	
+	my $group = $c->model('PgDB::Group')->create ({
+				name		=>	$groupname,
+				customer	=>	$c->user->customer->id,
+			});
+	
+	$c->log->debug("ADDGRP: Addition returned id " . $group->id);
+			
+	$c->res->redirect($c->uri_for('list'));
+	$c->detach;
+}
+
 sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 	my ($self, $c, $grp_id) = @_;
 	
-	my $group = $c->model('PgDB::Group')->search( id => $grp_id );
+	my $group = $c->model('PgDB::Group')->find( $grp_id );
 	
 	my @members = $c->model('PgDB::Src')->search( 
 							{ 
@@ -77,8 +96,8 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 		push @member_arr, \%member_hash;
 	}
 	
-	$c->stash->{add_submit_url} = $c->uri_for_action('/admin/sourcegroups/addmember') . "/" . $grp_id;
-	$c->stash->{group_name}		= $group->next->name;
+	$c->stash->{add_submit_url} = $c->uri_for('addmember', $grp_id);
+	$c->stash->{group}			= \%{$group};
 	$c->stash->{member_list} 	= \@member_arr;
 	$c->stash->{template} 		= 'viewsourcegrp.tt2';
 	
@@ -97,6 +116,17 @@ sub addmember :Chained('base') :PathPart('addmember') :Args(1){
 	
 	if (is_ipv4($value)) {
 		$c->log->debug("ADDMEMBER: Value is an IP");
+		# Add to Src
+		my $src = $c->model('PgDB::Src')->create ({
+						value		=>	$value,
+						src_type	=>	$type,
+						customer	=>	$c->user->customer->id
+					});
+					
+		# Link to the Grp via SrcGroup
+		$src->add_to_src_groups({
+					grp	=>	$grp
+				});
 	}
 	else {
 		$c->log->debug("ADDMEMBER: Value is not an IP");
@@ -104,10 +134,23 @@ sub addmember :Chained('base') :PathPart('addmember') :Args(1){
 	
 	$c->log->debug("ADDMEMBER: Got values " . $grp . "," . $type . "," . $value);
 	
-	$c->response->body('Matched Charcoal::Controller::Admin::SourceGroups in Admin::SourceGroups.');
+	$c->res->redirect($c->uri_for('listmembers', $grp));
+	$c->detach;
+
 }
 
-sub delmember :Chained('base') :PathPart('delmember') :Args(1){
+sub delmember :Chained('base') :PathPart('delmember') :Args(2){
+	my ( $self, $c, $src, $grp ) = @_;
+	
+	$c->log->debug("DELMEM: Args: " . $src . "," . $grp);
+	
+	my $obj = $c->model('PgDB::Src')->find($src);
+	$obj->delete();
+	
+	#$c->response->body('Matched Charcoal::Controller::Admin::SourceGroups in Admin::SourceGroups.');	
+	$c->res->redirect($c->uri_for('listmembers', $grp));
+	$c->detach;
+	
 }
 #sub root :Chained('base') :PathPart('') :Args(0) {}
 
