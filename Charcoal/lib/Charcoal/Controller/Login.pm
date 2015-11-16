@@ -68,7 +68,7 @@ sub auth :Path('/login/auth') :Args(0) {
 
 =head1 AUTHOR
 
-Nishant Sharma,,,
+Unmukti Technology Pvt Ltd,,,
 
 =head1 LICENSE
 

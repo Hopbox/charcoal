@@ -189,7 +189,7 @@ sub delmember :Chained('base') :PathPart('delmember') :Args(2){
 
 =head1 AUTHOR
 
-Nishant Sharma,,,
+Unmukti Technology Pvt Ltd,,,
 
 =head1 LICENSE
 

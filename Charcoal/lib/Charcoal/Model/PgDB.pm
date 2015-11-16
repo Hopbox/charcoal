@@ -27,7 +27,7 @@ Catalyst::Helper::Model::DBIC::Schema - 0.65
 
 =head1 AUTHOR
 
-Nishant Sharma
+Unmukti Technology Pvt Ltd
 
 =head1 LICENSE
 

@@ -1,6 +1,9 @@
 charcoal
 ========
 
+Copyright Unmukti Technology Pvt Ltd. All rights reserved.
+Licensed under GPL. See LICENSE file for more details.
+
 Web API based Squid URL Redirector
 
 1. Why the name charcoal?

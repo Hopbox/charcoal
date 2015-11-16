@@ -17,7 +17,7 @@ Catalyst JSON View.
 
 =head1 AUTHOR
 
-Nishant Sharma,,,
+Unmukti Technology Pvt Ltd,,,
 
 =head1 LICENSE
 
