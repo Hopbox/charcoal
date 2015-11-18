@@ -21,10 +21,29 @@ Catalyst Controller.
 
 =cut
 
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
+sub base :Chained('/') :PathPart('admin/destinations') :CaptureArgs(0) {}
 
-    $c->response->body('Matched Charcoal::Controller::Admin::Destinations in Admin::Destinations.');
+sub list :Chained('base') :PathPart('list') :Args(1) {
+    my ( $self, $c, $page ) = @_;
+
+	$page ||= 1;
+
+	my $destinations = $c->model('PgDB::CDomain')->search({ 
+						customer => $c->user->customer->id,
+						},
+						{
+							page	=> $page,
+							rows	=> 10,
+							order_by => { -asc => 'domain' }
+						},
+						);
+						
+	$c->stash->{destinations} 	= [ $destinations->all ];
+	$c->stash->{template} 		= 'destinations.tt2';
+	
+    $c->forward( $c->view() );
+   
+   # $c->response->body('Matched Charcoal::Controller::Admin::Destinations in Admin::Destinations.');
 }
 
 

@@ -28,7 +28,12 @@ sub base :Chained('/') :PathPart('admin/sourcegroups') :CaptureArgs(0) {}
 sub list :Chained('base') :PathPart('list') :Args(0){
     my ( $self, $c ) = @_;
 
-	my @src_grps = $c->model('PgDB::Group')->search( { customer => $c->user->customer->id },{ order_by => { -asc => 'name' } });
+	my @src_grps = $c->model('PgDB::Group')->search({ 
+						customer => $c->user->customer->id 
+						},
+						{ 
+							order_by => { -asc => 'name' } 
+						});
     
     my @grp_arr;
     
