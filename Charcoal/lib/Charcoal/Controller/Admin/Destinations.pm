@@ -23,11 +23,12 @@ Catalyst Controller.
 
 sub base :Chained('/') :PathPart('admin/destinations') :CaptureArgs(0) {}
 
-sub list :Chained('base') :PathPart('list') :Args(1) {
-    my ( $self, $c, $page ) = @_;
+sub list :Chained('base') :PathPart('list') :Args(0) {
+    my ( $self, $c ) = @_;
 
-	$page ||= 1;
-
+	my $page = $c->request->params->{page};
+	$page = 1 if ( ( $page !~ /^\d+$/ ) or (!$page) );
+	
 	my $destinations = $c->model('PgDB::CDomain')->search({ 
 						customer => $c->user->customer->id,
 						},
@@ -38,8 +39,9 @@ sub list :Chained('base') :PathPart('list') :Args(1) {
 						},
 						);
 						
-	$c->stash->{destinations} 	= [ $destinations->all ];
-	$c->stash->{template} 		= 'destinations.tt2';
+	$c->stash->{destinations} 	= 	[ $destinations->all ];
+	$c->stash->{pager}			=	$destinations->pager;
+	$c->stash->{template} 		= 	'destinations.tt2';
 	
     $c->forward( $c->view() );
    
