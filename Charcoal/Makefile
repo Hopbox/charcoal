@@ -13,16 +13,16 @@
 
 #     ABSTRACT => q[Catalyst based application]
 #     AUTHOR => [q[Nishant Sharma,,,]]
-#     BUILD_REQUIRES => { ExtUtils::MakeMaker=>q[6.36], Test::More=>q[0.88] }
+#     BUILD_REQUIRES => { Test::More=>q[0.88], ExtUtils::MakeMaker=>q[6.36] }
 #     CONFIGURE_REQUIRES => {  }
 #     DISTNAME => q[Charcoal]
 #     EXE_FILES => [q[script/charcoal_cgi.pl], q[script/charcoal_create.pl], q[script/charcoal_fastcgi.pl], q[script/charcoal_server.pl], q[script/charcoal_test.pl]]
 #     LICENSE => q[perl]
 #     NAME => q[Charcoal]
 #     NO_META => q[1]
-#     PREREQ_PM => { Catalyst::Plugin::Session::State::Cookie=>q[0], Catalyst::Plugin::Session::Store::Memcached::Fast=>q[0], Moose=>q[0], Catalyst::Plugin::Authentication=>q[0], Starman=>q[0], Catalyst::Plugin::Static::Simple=>q[0], Catalyst::Plugin::ConfigLoader=>q[0], Data::Validate::IP=>q[0], Plack=>q[0], ExtUtils::MakeMaker=>q[6.36], namespace::autoclean=>q[0], Catalyst::Action::RenderView=>q[0], Catalyst::Runtime=>q[5.90079], Test::More=>q[0.88], Catalyst::Plugin::Cache::FastMmap=>q[0], JSON::XS=>q[0], Config::General=>q[0] }
+#     PREREQ_PM => { Catalyst::Action::RenderView=>q[0], namespace::autoclean=>q[0], Moose=>q[0], Starman=>q[0], Catalyst::Plugin::Authentication=>q[0], ExtUtils::MakeMaker=>q[6.36], Catalyst::Plugin::Session::Store::Memcached::Fast=>q[0], Test::More=>q[0.88], Catalyst::Plugin::Static::Simple=>q[0], Catalyst::Plugin::Cache::FastMmap=>q[0], Catalyst::Runtime=>q[5.90079], Catalyst::Plugin::ConfigLoader=>q[0], Data::Validate::IP=>q[0], JSON::XS=>q[0], Plack=>q[0], Config::General=>q[0], Catalyst::Plugin::Session::State::Cookie=>q[0] }
 #     TEST_REQUIRES => {  }
-#     VERSION => q[0.02]
+#     VERSION => q[0.03]
 #     VERSION_FROM => q[lib/Charcoal.pm]
 #     dist => {  }
 #     realclean => { FILES=>q[MYMETA.yml] }
@@ -65,11 +65,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = Charcoal
 NAME_SYM = Charcoal
-VERSION = 0.02
+VERSION = 0.03
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_02
+VERSION_SYM = 0_03
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.02
+XS_VERSION = 0.03
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -240,7 +240,6 @@ TO_INST_PM = lib/Charcoal.pm \
 	lib/Charcoal/Controller/Admin/Destinations.pm \
 	lib/Charcoal/Controller/Admin/SourceGroups.pm \
 	lib/Charcoal/Controller/Admin/Sources.pm \
-	lib/Charcoal/Controller/Admin/geany_run_script.sh \
 	lib/Charcoal/Controller/Login.pm \
 	lib/Charcoal/Controller/Logout.pm \
 	lib/Charcoal/Controller/Root.pm \
@@ -291,8 +290,6 @@ PM_TO_BLIB = lib/Charcoal.pm \
 	blib/lib/Charcoal/Controller/Admin/SourceGroups.pm \
 	lib/Charcoal/Controller/Admin/Sources.pm \
 	blib/lib/Charcoal/Controller/Admin/Sources.pm \
-	lib/Charcoal/Controller/Admin/geany_run_script.sh \
-	blib/lib/Charcoal/Controller/Admin/geany_run_script.sh \
 	lib/Charcoal/Controller/Login.pm \
 	blib/lib/Charcoal/Controller/Login.pm \
 	lib/Charcoal/Controller/Logout.pm \
@@ -436,7 +433,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = Charcoal
-DISTVNAME = Charcoal-0.02
+DISTVNAME = Charcoal-0.03
 
 
 # --- MakeMaker macro section:
@@ -694,26 +691,20 @@ manifypods : pure_all  \
 
 EXE_FILES = script/charcoal_cgi.pl script/charcoal_create.pl script/charcoal_fastcgi.pl script/charcoal_server.pl script/charcoal_test.pl
 
-pure_all :: $(INST_SCRIPT)/charcoal_create.pl $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_test.pl $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_fastcgi.pl
+pure_all :: $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_test.pl $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_create.pl $(INST_SCRIPT)/charcoal_fastcgi.pl
 	$(NOECHO) $(NOOP)
 
 realclean ::
 	$(RM_F) \
-	  $(INST_SCRIPT)/charcoal_create.pl $(INST_SCRIPT)/charcoal_server.pl \
-	  $(INST_SCRIPT)/charcoal_test.pl $(INST_SCRIPT)/charcoal_cgi.pl \
+	  $(INST_SCRIPT)/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_test.pl \
+	  $(INST_SCRIPT)/charcoal_server.pl $(INST_SCRIPT)/charcoal_create.pl \
 	  $(INST_SCRIPT)/charcoal_fastcgi.pl 
 
-$(INST_SCRIPT)/charcoal_create.pl : script/charcoal_create.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_create.pl
-	$(CP) script/charcoal_create.pl $(INST_SCRIPT)/charcoal_create.pl
-	$(FIXIN) $(INST_SCRIPT)/charcoal_create.pl
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_create.pl
-
-$(INST_SCRIPT)/charcoal_server.pl : script/charcoal_server.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_server.pl
-	$(CP) script/charcoal_server.pl $(INST_SCRIPT)/charcoal_server.pl
-	$(FIXIN) $(INST_SCRIPT)/charcoal_server.pl
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_server.pl
+$(INST_SCRIPT)/charcoal_cgi.pl : script/charcoal_cgi.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_cgi.pl
+	$(CP) script/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_cgi.pl
+	$(FIXIN) $(INST_SCRIPT)/charcoal_cgi.pl
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_cgi.pl
 
 $(INST_SCRIPT)/charcoal_test.pl : script/charcoal_test.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_test.pl
@@ -721,11 +712,17 @@ $(INST_SCRIPT)/charcoal_test.pl : script/charcoal_test.pl $(FIRST_MAKEFILE) $(IN
 	$(FIXIN) $(INST_SCRIPT)/charcoal_test.pl
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_test.pl
 
-$(INST_SCRIPT)/charcoal_cgi.pl : script/charcoal_cgi.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
-	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_cgi.pl
-	$(CP) script/charcoal_cgi.pl $(INST_SCRIPT)/charcoal_cgi.pl
-	$(FIXIN) $(INST_SCRIPT)/charcoal_cgi.pl
-	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_cgi.pl
+$(INST_SCRIPT)/charcoal_server.pl : script/charcoal_server.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_server.pl
+	$(CP) script/charcoal_server.pl $(INST_SCRIPT)/charcoal_server.pl
+	$(FIXIN) $(INST_SCRIPT)/charcoal_server.pl
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_server.pl
+
+$(INST_SCRIPT)/charcoal_create.pl : script/charcoal_create.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
+	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_create.pl
+	$(CP) script/charcoal_create.pl $(INST_SCRIPT)/charcoal_create.pl
+	$(FIXIN) $(INST_SCRIPT)/charcoal_create.pl
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/charcoal_create.pl
 
 $(INST_SCRIPT)/charcoal_fastcgi.pl : script/charcoal_fastcgi.pl $(FIRST_MAKEFILE) $(INST_SCRIPT)$(DFSEP).exists $(INST_BIN)$(DFSEP).exists
 	$(NOECHO) $(RM_F) $(INST_SCRIPT)/charcoal_fastcgi.pl
@@ -782,7 +779,7 @@ realclean_subdirs :
 # Delete temporary files (via clean) and also delete dist files
 realclean purge ::  clean realclean_subdirs
 	- $(RM_F) \
-	  $(MAKEFILE_OLD) $(FIRST_MAKEFILE) 
+	  $(FIRST_MAKEFILE) $(MAKEFILE_OLD) 
 	- $(RM_RF) \
 	  MYMETA.yml $(DISTVNAME) 
 
@@ -1100,7 +1097,6 @@ pm_to_blib : $(FIRST_MAKEFILE) $(TO_INST_PM)
 	  lib/Charcoal/Controller/Admin/Destinations.pm blib/lib/Charcoal/Controller/Admin/Destinations.pm \
 	  lib/Charcoal/Controller/Admin/SourceGroups.pm blib/lib/Charcoal/Controller/Admin/SourceGroups.pm \
 	  lib/Charcoal/Controller/Admin/Sources.pm blib/lib/Charcoal/Controller/Admin/Sources.pm \
-	  lib/Charcoal/Controller/Admin/geany_run_script.sh blib/lib/Charcoal/Controller/Admin/geany_run_script.sh \
 	  lib/Charcoal/Controller/Login.pm blib/lib/Charcoal/Controller/Login.pm \
 	  lib/Charcoal/Controller/Logout.pm blib/lib/Charcoal/Controller/Logout.pm \
 	  lib/Charcoal/Controller/Root.pm blib/lib/Charcoal/Controller/Root.pm \
@@ -1126,9 +1122,9 @@ pm_to_blib : $(FIRST_MAKEFILE) $(TO_INST_PM)
 	  lib/PgDB/Schema.pm blib/lib/PgDB/Schema.pm \
 	  lib/PgDB/Schema/Result/Acl.pm blib/lib/PgDB/Schema/Result/Acl.pm \
 	  lib/PgDB/Schema/Result/CDomCat.pm blib/lib/PgDB/Schema/Result/CDomCat.pm \
-	  lib/PgDB/Schema/Result/CDomain.pm blib/lib/PgDB/Schema/Result/CDomain.pm 
+	  lib/PgDB/Schema/Result/CDomain.pm blib/lib/PgDB/Schema/Result/CDomain.pm \
+	  lib/PgDB/Schema/Result/Category.pm blib/lib/PgDB/Schema/Result/Category.pm 
 	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
-	  lib/PgDB/Schema/Result/Category.pm blib/lib/PgDB/Schema/Result/Category.pm \
 	  lib/PgDB/Schema/Result/Customer.pm blib/lib/PgDB/Schema/Result/Customer.pm \
 	  lib/PgDB/Schema/Result/Domain.pm blib/lib/PgDB/Schema/Result/Domain.pm \
 	  lib/PgDB/Schema/Result/Expr.pm blib/lib/PgDB/Schema/Result/Expr.pm \

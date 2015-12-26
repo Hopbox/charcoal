@@ -9,7 +9,7 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            Here you can edit members for the group <b>[% group_name %]</b>
+                            Here you can edit members for the group <b>[% group.name %]</b>
                             <br/>A member can be an IP, a Subnet or an IP Range as it's member.
                             
                         </div>
@@ -27,40 +27,27 @@
 												<h4 class="modal-title">Add Member</h4>
 											</div>
 											<div class="modal-body">
-												<script type="javascript">
-												function ValidateIPaddress(inputText)  
-													{  
-														var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;  
-														if(inputText.value.match(ipformat))  
-															{  
-																document.addipform.ipv4.focus();  
-																return true;  
-															}  
-														else  
-														{  
-															alert("You have entered an invalid IP address!");  
-															document.addipform.ipv4.focus();
-															return false;  
-														}  
-													}  
-												</script>
+												
 												<form name="addipform" role="form" action="[% add_submit_url %]" method="POST">
 													<div class="form-group">
 														<label for="membertype">Type</label>
 														<select class="form-control" id="membertype" name="membertype">
-															<option value="2">IP</option>
+															<option value="1" disabled>User</option>
+															<option value="2" selected>IP</option>
+															<option value="3" disabled>IP Range</option>
+															<option value="4" disabled>Network</option>
 														</select>
 													</div>
 													<div class="form-group">
 														<label for="membervalue">Value</label>
-														<input type="text" class="form-control" name="membervalue" id="membervalue">
+														<input type="text" class="form-control" name="membervalue" id="membervalue" required>
 													</div>
-													<button type="submit" class="btn btn-default" onclick="ValidateIPaddress(document.addipform.ipv4)">Submit</button>
-													<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+													<button type="submit" class="btn btn-success" onclick="ValidateIPaddress(document.addipform.ipv4)">Submit</button>
+													<button type="reset" class="btn btn-warning">Clear</button>
 												</form>
 											</div>
 											<div class="modal-footer">
-												Add an IP Address as a member to the group.
+												<p>Currently only IP is supported.</p>
 											</div>
 										</div>
 
@@ -84,7 +71,7 @@
 											<td>[% member.value %]</td>
 											<td>[% member.type %]</td>
                                             <td style="width: 40%">
-												<button type="button" class="btn btn-danger btn-sm" title="Delete this Group">Delete</button>
+												<a href="[% c.uri_for(c.controller.action_for('delmember'), [member.id, group.id]) %]" type="button" class="btn btn-danger btn-sm" title="Delete this Member">Delete</a>
                                             </td>
                                             
                                         </tr>

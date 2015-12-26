@@ -23,6 +23,24 @@ Catalyst Controller.
 
 sub base :Chained('/') :PathPart('admin/destinations') :CaptureArgs(0) {}
 
+sub adddomain :Chained('/') :PathPart('adddomain') :Args(0) {
+
+	my ( $self, $c ) = @_;
+	my $domain = $c->request->params->{domain};
+	
+	$c->log->debug("ADDDOMAIN: Attempting to add domain " . $domain);
+	
+	my $domain = $c->model('PgDB::CDomain')->create ({
+				domain		=>	$domain,
+				customer	=>	$c->user->customer->id,
+			});
+	
+	$c->log->debug("ADDDOMAIN: Addition returned id " . $domain->id);
+			
+	$c->res->redirect($c->uri_for('list'));
+	$c->detach;
+}
+
 sub list :Chained('base') :PathPart('list') :Args(0) {
     my ( $self, $c ) = @_;
 

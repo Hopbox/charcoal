@@ -69,10 +69,10 @@
                             <a href="#"><i class="fa fa-wrench fa-fw"></i> Destinations<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
 								<li>
-									<a href="#">Destinations</a>
+									<a href="/admin/destinations/list">Destinations</a>
 								</li>
                                 <li>
-                                    <a href="#">Destination Groups</a>
+                                    <a href="/admin/destinations/groups/list">Destination Groups</a>
                                 </li>
                             </ul>
                             <!-- /.nav-second-level -->
