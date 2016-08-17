@@ -1,0 +1,86 @@
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Destinations</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            List of all the Destinations.
+                            <br/>A destination is a domain.
+                            
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="dataTable_wrapper">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-example">
+                                    <thead>
+                                        <tr>
+                                            <th>Destination</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                   
+                                    [% FOREACH destination IN destinations %]
+                                    	<tr>
+											<td>[% destination.domain %]</td>
+                                            <td style="width:40%">
+                                            <button type="button" class="btn btn-info btn-sm" title="View or Edit this Destination">View / Edit Memberships</button>
+                                            <button type="button" class="btn btn-danger btn-sm" title="Delete this Destination">Delete</button>
+                                            </td>
+                                        </tr>
+                                    [% END %]
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.table-responsive -->
+                        <!-- /.panel-body -->
+                        [% IF pager %]
+								
+									<div class="panel-footer" align="center">
+										
+										<p>Page [% pager.current_page %] of [% pager.last_page %]</p>
+										<p>
+										[% IF pager.previous_page %]
+											<a href="[% c.req.uri_with( page => pager.first_page) %]" type="button" class="btn btn-default btn-sm" title="First Page">First</a>
+											<a href="[% c.req.uri_with( page => pager.previous_page ) %]" type="button" class="btn btn-default btn-sm" title="Previous Page">Prev</a>
+										[% ELSE %]
+											<a href="[% c.req.uri_with( page => pager.first_page) %]" type="button" class="btn btn-default btn-sm disabled" title="First Page">First</a>
+											<a href="[% c.req.uri_with( page => pager.previous_page ) %]" type="button" class="btn btn-default btn-sm disabled" title="Previous Page">Prev</a>
+										[% END %]
+										&nbsp;
+										[% start = (pager.current_page - 3) > 0 ? (pager.current_page - 3) : 1;
+										FOREACH page IN [ start .. pager.last_page ] %]
+											[% LAST IF loop.count > 6 %]
+											[% IF pager.current_page == page %]
+												<a href="#" type="button" class="btn btn-info btn-sm disabled" title="Page [% page %]">[% page %]</a>
+											[% ELSE %]
+												<a href="[% c.req.uri_with( page => page ) %]" type="button" class="btn btn-default btn-sm" title="Page [% page %]">[% page %]</a>
+											[% END %]
+										[% END %]
+										&nbsp;
+										[% IF pager.next_page %]
+											<a href="[% c.req.uri_with( page => pager.next_page ) %]" type="button" class="btn btn-default btn-sm" title="Next Page">Next</a>
+											<a href="[% c.req.uri_with( page => pager.last_page ) %]" type="button" class="btn btn-default btn-sm" title="Last Page">Last</a>
+										[% ELSE %]
+											<a href="[% c.req.uri_with( page => pager.next_page ) %]" type="button" class="btn btn-default btn-sm disabled" title="Next Page">Next</a>
+											<a href="[% c.req.uri_with( page => pager.last_page ) %]" type="button" class="btn btn-default btn-sm disabled" title="Last Page">Last</a>
+										[% END %]
+										</p>
+									</div>
+									<!--./panel-footer-->
+								
+							[% END %]
+                            <!-- /.pager -->
+                    </div>
+                    <!-- /.panel -->
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            

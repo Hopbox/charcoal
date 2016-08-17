@@ -46,8 +46,7 @@ if ( @ARGV < 1){
 ## Server: charcoal.hopbox.in
 ## Port  : 80
 ##
-#my $charcoal_server = '192.168.216.94';
-my $charcoal_server = 'tunnelr3.hopbox.in';
+my $charcoal_server = 'active.charcoal.io';
 my $charcoal_port   = '6603';
 my $proto           = 'tcp';
 my $timeout         = 10;
@@ -146,7 +145,7 @@ while(<>){
         print $sock "$apikey|$squidver|$clientip|$ident|$method|$blah|$url\r\n";
         my $access = <$sock>;
         chomp $access;
-		my $res = $chan . ' ' . $access;
+		my $res = $access;
         $sock->close();
 		print "$res\n";
 		print STDERR "$res\n" if $DEBUG;

@@ -20,15 +20,18 @@ use Cache::Memcached::Fast;
 # Set or unset DEBUG mode
 my $DEBUG = 1;
 
+# Set CACHE var to 0. If found in cache, update it to 1
+my $CACHE = 0;
+
 # The AutoCommit attribute should always be explicitly set
 use DBD::Pg qw(:pg_types :async);
 
-#my $pgdbhost = 'localhost';
-my $pgdbhost = '10.28.0.1';
+my $pgdbhost = 'localhost';
+#my $pgdbhost = '10.28.0.1';
 my $pgdbname = 'charcoaldb';
 my $pgdbuser = 'charcoal';
 my $pgdbpass = 'charcoa1pa55';
-my $pgdbport = 5433;
+my $pgdbport = 5432;
 
 our ($memd, $dbh);
 
@@ -65,10 +68,11 @@ sub process_request {
             s/\r?\n$//;
             print STDERR "MAIN: Sending for check_acl\n" if $DEBUG;
             my $allowdeny = check_acl($_);
-            print $allowdeny;
+	    print $allowdeny;
             $allowdeny = "2OK" if (!$allowdeny);# Set to 2OK for squid 2
-            $memd->set($_, $allowdeny, 600);# Set key-value in memcached
-            print STDERR "MAIN: Returned from check_acl - allowdeny is $allowdeny\n" if $DEBUG;
+            $memd->set($_, $allowdeny, 600) if ($CACHE != 1);# Set key-value in memcached
+            print STDERR "MAIN: Returned from check_acl - allowdeny is $allowdeny " if $DEBUG;
+	    print STDERR "CACHE is $CACHE\n" if $DEBUG;
             $self->disconnect;
             alarm($timeout);
         }
@@ -133,13 +137,15 @@ sub check_acl {
     my $cres = $memd->get($msg);
     if ($cres){
         print STDERR "FOUND in memcached: $cres\n" if $DEBUG;
+	print STDERR "CACHE is set to: 1\n" if $DEBUG;
         $cres = "" if $cres eq '2OK';
+	$CACHE = 1;
         return $cres;
     }
 
     my ($api, $squidver, $srcip, $ident, $method, $blah, $url) = split(/\|/, $msg);
 
-    $srcip =~ s/\/-$//;
+    $srcip =~ s/\/.*$//;
 
     my $sql = qq{ SELECT id FROM customers where api = ? };
     my $sth = $dbh->prepare($sql);
@@ -148,14 +154,14 @@ sub check_acl {
     my ($customer, $custid);
     $sth->bind_columns(\$customer);
     while ($sth->fetch){
-            print STDERR "CUST ID: $customer\n" if $DEBUG;
+            print STDERR "{$api} CUST ID: $customer\n" if $DEBUG;
             $custid = $customer;
     }
     $sth->finish;
 
-    print STDERR "Customer ID for API Key \'$api\': $custid\n" if $DEBUG;
+    print STDERR "{$api} Customer ID for API Key \'$api\': $custid\n" if $DEBUG;
     if (!$custid){
-        print STDERR "Invalid API Key. Returning\n";
+        print STDERR "{$api} Invalid API Key. Returning\n";
         return ("BH message=Invalid API Key\r\n");
     }
 
@@ -163,7 +169,7 @@ sub check_acl {
 
     my $ACCESS = 0; # DEFAULT ACCESS IS TO DENY ALL
 
-    $sql = "SELECT sequence AS seq, acl::jsonb#>>'{access}' AS access from \
+    $sql = "SELECT seq AS seq, acl::jsonb#>>'{access}' AS access from \
                 acls where customer = ? and acl::jsonb#>'{src}' \\? '0' \
                 and acl::jsonb#>'{dst}' \\? '0' order by seq desc limit 1";
     $sth = $dbh->prepare($sql);
@@ -171,17 +177,17 @@ sub check_acl {
     my ($seq, $result);
     $sth->bind_columns(\$seq, \$result);
     while($sth->fetch()){
-        print STDERR ">>>> Got default access at seq $seq as $result\n" if $DEBUG;
+        print STDERR "{$api} >>>> Got default access at seq $seq as $result\n" if $DEBUG;
     }
 
     $ACCESS = 1 if $result eq "ALLOW";
     $ACCESS = 0 if $result eq "DENY";
 
-    print STDERR "**** ACCESS is now $ACCESS\n" if $DEBUG;
+    print STDERR "{$api} **** ACCESS is now $ACCESS\n" if $DEBUG;
 
 
     my ($scheme, $domain, $path, $query, $frag) = uri_split($url);
-	print STDERR "URI_SPLIT: $scheme, $domain, $path, $query, $frag\n" if $DEBUG;
+	print STDERR "{$api} URI_SPLIT: $scheme, $domain, $path, $query, $frag\n" if $DEBUG;
     my $dst = $domain || $scheme;
 	my $displaydst = $dst;
 
@@ -191,7 +197,7 @@ sub check_acl {
     }
 
     while ($dst) {
-	    print STDERR "#### Getting categories for destination $dst.\n" if $DEBUG;
+	    print STDERR "{$api} #### Getting categories for destination $dst.\n" if $DEBUG;
 	
 	    my $glsql = qq{ SELECT category FROM gl_dom_cat WHERE domain IN (SELECT id FROM domains WHERE domain = ?) };
 	    my $csql = qq { SELECT category FROM c_dom_cat WHERE domain IN (SELECT id FROM c_domains WHERE customer = ? and domain = ?)};
@@ -201,7 +207,7 @@ sub check_acl {
 	    $sth->execute($dst);
 	    $sth->bind_columns(\$category);
 	    while ($sth->fetch()){
-            print STDERR "Found global category $category for destination $dst\n" if $DEBUG;
+            print STDERR "{$api} Found global category $category for destination $dst\n" if $DEBUG;
             push @categories, $category;
         }
 	
@@ -211,15 +217,15 @@ sub check_acl {
 	    $sth->execute($custid, $dst);
 	    $sth->bind_columns(\$category);
 	    while ($sth->fetch()){
-            print STDERR "Found customer category $category for destination $dst\n" if $DEBUG;
+            print STDERR "{$api} Found customer category $category for destination $dst\n" if $DEBUG;
             push @categories, $category;
         }   
 	
 	    $sth->finish;
 	
-	    print STDERR "Categories: @categories \n" if $DEBUG;
+	    print STDERR "{$api} Categories: @categories \n" if $DEBUG;
 	
-	    print STDERR "Getting src_groups for the src: $custid, $srcip, $ident\n" if $DEBUG;
+	    print STDERR "{$api} Getting src_groups for the src: $custid, $srcip, $ident\n" if $DEBUG;
 	
 	    my @src_grp;
 	
@@ -245,7 +251,7 @@ sub check_acl {
 	
 	    while ($sth->fetch()){
 	
-	        print STDERR "Checking if $srcip lies within/matches $db_src.\n" if $DEBUG;
+	        print STDERR "{$api} Checking if $srcip lies within/matches $db_src.\n" if $DEBUG;
 	
 	        if ( $src_ip_obj->within ( NetAddr::IP->new( $db_src ) ) ){
 	            my $sql = qq / SELECT grp FROM src_groups WHERE member = ? /;
@@ -254,7 +260,7 @@ sub check_acl {
 	            $sth->bind_columns(\$src_group_id);
 	
 	            while ($sth->fetch()){
-	                print STDERR "Adding $src_group_id to src_group list for $db_src/$srcip\n" if $DEBUG;
+	                print STDERR "{$api} Adding $src_group_id to src_group list for $db_src/$srcip\n" if $DEBUG;
 	                push @src_grp, $src_group_id;
 	            }
 	            $sth->finish;
@@ -278,20 +284,20 @@ sub check_acl {
 	
 	# Get all the rules which have SRC -> 0 (ALL) & DST -> 0 or request DST
 	    undef $sql; undef $sth;
-	    $sql =   "SELECT sequence AS seq, acl::jsonb#>>'{access}' AS access from acls where \
-	                customer = ? and sequence != 99999 ";
+	    $sql =   "SELECT seq AS seq, acl::jsonb#>>'{access}' AS access from acls where \
+	                customer = ? and seq != 99999 ";
 	
 	    my ($srcstring, $dststring);
 	    my $src_grp_count = $#src_grp + 1;
 	    my $cat_count = $#categories + 1;
 	
-	    print STDERR "Source Group Count: $src_grp_count Categories Count: $cat_count \n" if $DEBUG;
+	    print STDERR "{$api} Source Group Count: $src_grp_count Categories Count: $cat_count \n" if $DEBUG;
 
         if (!$src_grp_count && !$cat_count){
-			print STDERR "src & cat both are ZERO. No point in querying. NEXT\n" if $DEBUG;
+			print STDERR "{$api} src & cat both are ZERO. No point in querying. NEXT\n" if $DEBUG;
 			$dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." preceeded by something, make it null and exit;
         	$dst =~ s/^.*?\.(.*)/$1/; ## chop first sub-domain part from left
-        	print STDERR ">>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
+        	print STDERR "{$api} >>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
 			next;
         }
 	
@@ -299,7 +305,7 @@ sub check_acl {
 	    if ($src_grp_count){
 	        foreach (@src_grp){
 	            $_ = "\'$_\'";
-	            print STDERR "Source group $_\n" if $DEBUG;
+	            print STDERR "{$api} Source group $_\n" if $DEBUG;
 	            $srcstring = join (',', $srcstring, $_);
 	        }
 	    }
@@ -313,7 +319,7 @@ sub check_acl {
 	    if ($cat_count){
 	        foreach (@categories){
 	            $_ = "\'$_\'";
-	            print STDERR "Destination category $_\n" if $DEBUG;
+	            print STDERR "{$api} Destination category $_\n" if $DEBUG;
 	            $dststring = join (',', $dststring, $_);
 	        }
 	    }
@@ -329,8 +335,8 @@ sub check_acl {
 	
 	    $sql = $sql . ' order by seq desc';
 	       
-	    print STDERR "Getting rules with srcstring $srcstring and dststring $dststring\n" if $DEBUG;
-	    print STDERR "Query is: $sql\n" if $DEBUG;
+	    print STDERR "{$api} Getting rules with srcstring $srcstring and dststring $dststring\n" if $DEBUG;
+	    print STDERR "{$api} Query is: $sql\n" if $DEBUG;
 	
 	    $sth = $dbh->prepare($sql);
 	    $sth->execute($custid);
@@ -339,7 +345,7 @@ sub check_acl {
 	    undef $seq; undef $result;
 	    $sth->bind_columns(\$seq, \$result);
 	    while ($sth->fetch()){
-	        print STDERR ">>>> Got rule seq: $seq and access: $result\n" if $DEBUG;
+	        print STDERR "{$api} >>>> Got rule seq: $seq and access: $result\n" if $DEBUG;
 			next if $seq == 99999;	
 	    }
 	    $sth->finish;
@@ -348,28 +354,28 @@ sub check_acl {
 
         $dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." preceeded by something, make it null and exit;
         $dst =~ s/^.*?\.(.*)/$1/; ## chop first sub-domain part from left
-        print STDERR ">>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
+        print STDERR "{$api} >>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
 	
     }
 
-    print STDERR "**** Access is now $ACCESS - out of WHILE DST loop\n" if $DEBUG;
+    print STDERR "{$api} **** Access is now $ACCESS - out of WHILE DST loop\n" if $DEBUG;
 
 #    return "You said $msg\r\n";
     if ($ACCESS == 1){
-        print STDERR "Returning to main loop, with ACCESS ALLOW (squid version is $squidver)\n" if $DEBUG;
+        print STDERR "{$api} Returning to main loop, with ACCESS ALLOW (squid version is $squidver)\n" if $DEBUG;
         return "OK\r\n" if $squidver == 3;
         return;
     }
     else{
-		my $redir;
-		$redir = "http://hopbox.in/cgi-bin/blockmsg.cgi?url=$displaydst&clientaddr=$srcip&clientuser=$ident" if ($scheme eq 'http');
-		$redir = "https://hopbox.in/cgi-bin/blockmsg.cgi?url=$displaydst&clientaddr=$srcip&clientuser=$ident" if ($path eq '443');
-        print STDERR "Returning to main loop, with ACCESS DENY (squid version is $squidver)\n" if $DEBUG;
+	my $redir;
+	$redir = "http://hopbox.in/cgi-bin/blockmsg.cgi?url=$displaydst&clientaddr=$srcip&clientuser=$ident" if ($scheme eq 'http');
+	$redir = "https://hopbox.in/cgi-bin/blockmsg.cgi?url=$displaydst&clientaddr=$srcip&clientuser=$ident" if ($path eq '443');
+        print STDERR "{$api} Returning to main loop, with ACCESS DENY (squid version is $squidver)\n" if $DEBUG;
         return "OK status=302 url=\"$redir\"" if $squidver == 3;
         return "302:$redir" if $squidver == 2;
     }
 
-    print STDERR "End of check_acl subroutine\n" if $DEBUG;
+    print STDERR "{$api} End of check_acl subroutine\n" if $DEBUG;
 
 }
 
