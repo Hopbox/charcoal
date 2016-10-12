@@ -26,9 +26,11 @@ Charcoal helps you create and implement policies across distributed networks in 
 
 Charcoal has 2 components
 * Server
+========
 	+ *WebGUI* for creating policies
 	+ *API Server* for enforcing the rules
 * Client
+========
 It is a squid helper which runs on your squid server. It receives requests from squid and consults with the API server for the
 policy to be applied. If the API server tells it to let the request pass, it is ALLOWED. And if API server finds that this user
 is not allowed to access this destination at this hour with this User-Agent while trying to use the method POST to upload a file
