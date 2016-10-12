@@ -29,6 +29,7 @@ Charcoal has 2 components
 
 	+ *WebGUI* for creating policies
 	+ *API Server* for enforcing the rules
+
 * _Client_
 
 It is a squid helper which runs on your squid server. It receives requests from squid and consults with the API server for the
@@ -44,14 +45,19 @@ All this happens within a few milliseconds.
 * Client
 
 Squid helper is written in Perl and is currently running on following systems:
+
 	+ OpenWRT on
+
 		- ALIX (http://pcengines.ch/alix.htm)
 		- APU and APU2 (http://pcengines.ch/apu.htm and http://pcengines.ch/apu2.htm)
 		- Routerboard RB951Ui-2HnD
+
 	+ PfSense on x86 (ALIX included)
 	
 It can run on any Unix system which has:
+
 	+ Perl > 5.14.x
+
 		- IO::Socket
 
 * Server
