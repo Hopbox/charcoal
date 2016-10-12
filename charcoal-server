@@ -160,6 +160,8 @@ sub check_acl {
         return $cres;
     }
 
+	my %access_hash;
+
     my ($api, $squidver, $srcip, $ident, $method, $blah, $url) = split(/\|/, $msg);
 
     $srcip =~ s/\/.*$//;
@@ -195,6 +197,7 @@ sub check_acl {
     $sth->bind_columns(\$seq, \$result);
     while($sth->fetch()){
         print STDERR "{$api} >>>> Got default access at seq $seq as $result\n" if $DEBUG;
+		$access_hash{$seq} = $result;
     }
 
     $ACCESS = 1 if $result eq "ALLOW";
@@ -319,54 +322,58 @@ sub check_acl {
         }
 	
 	
-	    if ($src_grp_count){
+		if ($src_grp_count){
 	        foreach (@src_grp){
-	            $_ = "\'$_\'";
-	            print STDERR "{$api} Source group $_\n" if $DEBUG;
-	            $srcstring = join (',', $srcstring, $_);
+			$_ = "\'$_\'";
+			print STDERR "{$api} Source group $_\n" if $DEBUG;
+			$srcstring = join (',', $srcstring, $_);
 	        }
-	    }
-	    else{
+		}
+		else{
 	        $srcstring = "\'0\'";
-	    }
-	        $srcstring =~ s/^,//;
+		}
+
+        $srcstring =~ s/^,//;
+
+        $sql = $sql . " and ((acl::jsonb#>\'{src}\' \\?| array[$srcstring] ";
 	
-	        $sql = $sql . " and ((acl::jsonb#>\'{src}\' \\?| array[$srcstring] ";
-	
-	    if ($cat_count){
-	        foreach (@categories){
-	            $_ = "\'$_\'";
-	            print STDERR "{$api} Destination category $_\n" if $DEBUG;
-	            $dststring = join (',', $dststring, $_);
+		if ($cat_count){
+			foreach (@categories){
+				$_ = "\'$_\'";
+				print STDERR "{$api} Destination category $_\n" if $DEBUG;
+				$dststring = join (',', $dststring, $_);
 	        }
-	    }
-	    else{
-	        $dststring = "\'0\'";
-	    }
-	        $dststring =~ s/^,//;
+		}
+		
+		else{
+			$dststring = "\'0\'";
+		}
+
+		$dststring =~ s/^,//;
 	
         $sql = $sql . " and acl::jsonb#>\'{dst}\' \\?| array[$dststring] )";
 		$sql = $sql . " OR (acl::jsonb#>\'{src}\' \\?| array['0'] and acl::jsonb#>\'{dst}\' \\?| array[$dststring])";
 		$sql = $sql . " OR (acl::jsonb#>\'{src}\' \\?| array[$srcstring] and acl::jsonb#>\'{dst}\' \\?| array['0'])";
 		$sql = $sql . " ) ";
 	
-	    $sql = $sql . ' order by seq desc';
+		$sql = $sql . ' order by seq desc';
 	       
-	    print STDERR "{$api} Getting rules with srcstring $srcstring and dststring $dststring\n" if $DEBUG;
-	    print STDERR "{$api} Query is: $sql\n" if $DEBUG;
+		print STDERR "{$api} Getting rules with srcstring $srcstring and dststring $dststring\n" if $DEBUG;
+		print STDERR "{$api} Query is: $sql\n" if $DEBUG;
 	
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute($custid);
+		$sth = $dbh->prepare($sql);
+		$sth->execute($custid);
 	
-	    my @rules;
-	    undef $seq; undef $result;
-	    $sth->bind_columns(\$seq, \$result);
-	    while ($sth->fetch()){
-	        print STDERR "{$api} >>>> Got rule seq: $seq and access: $result\n" if $DEBUG;
-			next if $seq == 99999;	
-	    }
-	    $sth->finish;
-	    $ACCESS = 1 if $result eq "ALLOW";
+		my @rules;
+		undef $seq; undef $result;
+		$sth->bind_columns(\$seq, \$result);
+		while ($sth->fetch()){
+			print STDERR "{$api} >>>> Got rule seq: $seq and access: $result\n" if $DEBUG;
+	 		next if $seq == 99999;	
+			$access_hash{$seq} = $result;
+		}
+		$sth->finish;
+		$ACCESS = 1 if $result eq "ALLOW";
         $ACCESS = 0 if $result eq "DENY";
 
         $dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." preceeded by something, make it null and exit;
@@ -375,10 +382,17 @@ sub check_acl {
 	
     }
 
-    print STDERR "{$api} **** Access is now $ACCESS - out of WHILE DST loop\n" if $DEBUG;
+	for my $key ( sort keys %access_hash ){
+		print STDERR "{$api} ***** Seq $key: $access_hash{$key}\n" if $DEBUG;
+	}
+	my $effective_rule_key = (sort keys %access_hash)[0];
+
+	$ACCESS = $access_hash{$effective_rule_key};
+
+    	print STDERR "{$api} **** Access is now $ACCESS - out of WHILE DST loop\n" if $DEBUG;
 
 #    return "You said $msg\r\n";
-    if ($ACCESS == 1){
+    if ($ACCESS == 1 or $ACCESS eq "ALLOW"){
         print STDERR "{$api} Returning to main loop, with ACCESS ALLOW (squid version is $squidver)\n" if $DEBUG;
         return "OK\r\n" if $squidver == 3;
         return;

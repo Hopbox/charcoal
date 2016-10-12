@@ -23,7 +23,7 @@ Catalyst Controller.
 
 sub base :Chained('/') :PathPart('admin/destinations') :CaptureArgs(0) {}
 
-sub adddomain :Chained('/') :PathPart('adddomain') :Args(0) {
+sub adddomain :Chained('base') :PathPart('adddomain') :Args(0) {
 
 	my ( $self, $c ) = @_;
 	my $domain = $c->request->params->{domain};
@@ -41,7 +41,8 @@ sub adddomain :Chained('/') :PathPart('adddomain') :Args(0) {
 	$c->detach;
 }
 
-sub list :Chained('base') :PathPart('list') :Args(0) {
+sub dstlist :Chained('base') :PathPart('dstlist') :Args(0) {
+    
     my ( $self, $c ) = @_;
 
 	my $page = $c->request->params->{page};
@@ -66,6 +67,25 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
    # $c->response->body('Matched Charcoal::Controller::Admin::Destinations in Admin::Destinations.');
 }
 
+sub list :Chained('base') :PathPart('groups/list') :Args(0) {
+	my ($self, $c) = @_;
+	
+	my $page = $c->request->params->{page};
+	$page = 1 if ( ( $page !~ /^\d+$/ ) or ( !$page ) );
+	
+	my $dstgroups = $c->model('PgDB::Category')->search({
+						customer => $c->user->customer->id,
+						},
+						{
+							page => $page,
+							rows => 10,
+							order_by => { -asc => 'category' }
+						},
+						);
+	$c->stash->{dstgroups}	= [ $dstgroups->all ];
+	$c->stash->{pager}		=  $dstgroups->pager;
+	$c->stash->{template}	= 'dstgroups.tt2';
+}
 
 
 =encoding utf8
