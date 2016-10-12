@@ -46,18 +46,16 @@ All this happens within a few milliseconds.
 
 Squid helper is written in Perl and is currently running on following systems:
 
-	+ OpenWRT on
-
-		- ALIX (http://pcengines.ch/alix.htm)
-		- APU and APU2 (http://pcengines.ch/apu.htm and http://pcengines.ch/apu2.htm)
+	+ [OpenWRT] http://openwrt.org / [LEDE] http://lede-project.org on
+		- [PCEngines ALIX] http://pcengines.ch/alix.htm
+		- [PCEngines APU] http://pcengines.ch/apu.htma and [PCEngines APU2] http://pcengines.ch/apu2.htm
 		- Routerboard RB951Ui-2HnD
 
-	+ PfSense on x86 (ALIX included)
+	+ [PfSense] http://pfsense.org on x86 and AMD64 (ALIX & APU/APU2 included)
 	
 It can run on any Unix system which has:
 
 	+ Perl > 5.14.x
-
 		- IO::Socket
 
 * Server
