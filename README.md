@@ -38,13 +38,30 @@ of type audio/mp3, it tells the helper to redirect the user to a block page.
 
 All this happens within a few milliseconds.
 
-3. System requirements
+4. System requirements
 ======================
 
-4. Squid Versions supported
+* Client
+
+Squid helper is written in Perl and is currently running on following systems:
+	+ OpenWRT on
+		- ALIX (http://pcengines.ch/alix.htm)
+		- APU and APU2 (http://pcengines.ch/apu.htm and http://pcengines.ch/apu2.htm)
+		- Routerboard RB951Ui-2HnD
+	+ PfSense on x86 (ALIX included)
+	
+It can run on any Unix system which has:
+	+ Perl > 5.14.x
+		- IO::Socket
+
+* Server
+
+Server hardware sizing depends on the size of the deployment and number of requests per second.
+
+5. Squid Versions supported
 ===========================
 Squid-2.x is supported in compatibility mode with *-c* argument to the helper. While Squid-3.x is supported natively.
 We will add support for Squid-4.x soon.
 
-5. Setup and configuration
+6. Setup and configuration
 ==========================
