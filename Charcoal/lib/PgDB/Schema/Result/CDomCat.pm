@@ -265,6 +265,14 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-07-10 16:39:15
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N5wIiRGgbl1G4f9unPiCpw
 
+__PACKAGE__->many_to_many(
+	'domains'	=>	'c_dom_cats', 'domain'
+);
+
+__PACKAGE__->many_to_many(
+	'categories'	=>	'c_dom_cats', 'category'
+);
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -254,6 +254,9 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Pii/VDwQl49RberzdU4wzw
 
 
+__PACKAGE__->many_to_many(
+	'categories' => 'c_dom_cats', 'category'
+);
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
 # End of lines loaded from './PgDB/Schema/Result/CDomain.pm' 

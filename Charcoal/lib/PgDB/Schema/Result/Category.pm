@@ -301,6 +301,13 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-07-10 16:39:15
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vmRrQSClnN11HgNs4DS6Iw
 
+__PACKAGE__->many_to_many(
+	'cdomains'	=>	'c_dom_cats', 'domain'
+);
+
+__PACKAGE__->many_to_many(
+	'domains'	=>	'gl_dom_cats', 'domain'
+);
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

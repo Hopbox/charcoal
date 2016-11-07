@@ -21,13 +21,22 @@ Catalyst Controller.
 
 =cut
 
-sub index :Path :Args(0) {
+
+sub index :Chained('/') :PathPart('api') :CaptureArgs(0) {
     my ( $self, $c ) = @_;
 
-    $c->response->body('Matched Charcoal::Controller::API in API.');
+# Nothing to do as of now
+
 }
 
-
+sub auto :ActionClass('Deserialize'){
+	
+	my ($self, $c) = @_;
+	
+	if ($c->controller eq $c->controller('API::Login')) {
+        return 1;
+    }	
+}
 
 =encoding utf8
 

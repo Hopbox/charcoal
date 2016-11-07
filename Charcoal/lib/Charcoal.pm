@@ -24,6 +24,7 @@ use Catalyst qw/
 
     Authentication
     Session
+    Session::State::Header
     Session::State::Cookie
     Session::Store::FastMmap
 
@@ -33,6 +34,7 @@ use Catalyst::Authentication::Store::DBIx::Class;
 
 use JSON::XS;
 use Data::Validate::IP qw(is_ipv4 is_innet_ipv4);
+use Data::Dumper;
 
 extends 'Catalyst';
 

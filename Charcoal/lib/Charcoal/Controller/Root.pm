@@ -1,6 +1,7 @@
 package Charcoal::Controller::Root;
 use Moose;
 use namespace::autoclean;
+use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -51,6 +52,8 @@ sub auto : Private {
     #   if ($c->action eq $c->controller('Login')->action_for('index'))
     # to only allow unauthenticated access to the 'index' action we
     # added above.
+    
+    
     if ($c->controller eq $c->controller('Login')) {
         return 1;
     }
@@ -58,11 +61,31 @@ sub auto : Private {
     if ($c->controller eq $c->controller('Root')->action_for('index')) {
         return 1;
     }
-
+	
+	if ($c->request->path =~ /^api/ ) {
+		$c->response->headers->header('Access-Control-Allow-Origin' => '*');
+		$c->response->headers->header('Access-Control-Allow-Headers' => 'content-type, x-charcoal-auth');
+		$c->response->headers->header('Access-Control-Allow-Methods' => '*');
+	} 
+	
+	if ($c->request->method eq 'OPTIONS' && $c->request->path =~ /^api/ ){
+		$c->response->headers->header('Access-Control-Allow-Origin' => '*');
+		$c->response->headers->header('Access-Control-Allow-Headers' => 'content-type, x-charcoal-auth');
+		$c->response->headers->header('Access-Control-Allow-Methods' => '*');
+		return 1;
+	}
+	
+	if ($c->controller eq $c->controller('API::Login')){
+		$c->response->headers->header('Access-Control-Allow-Origin' => '*');
+		$c->response->headers->header('Access-Control-Allow-Headers' => 'content-type, x-charcoal-auth');
+		$c->response->headers->header('Access-Control-Allow-Methods' => '*');
+		return 1;
+	}
+	
     # If a user doesn't exist, force login
-    if (!$c->user_exists) {
+    if ( !$c->user_exists || !$c->session ) {
         # Dump a log message to the development server debug output
-        $c->log->debug('***Root::auto User not found, forwarding to /login');
+        $c->log->debug('***Root::auto User/Session not found, forwarding to /login');
         # Redirect the user to the login page
         $c->response->redirect($c->uri_for('/login'));
         # Return 0 to cancel 'post-auto' processing and prevent use of application
@@ -96,7 +119,17 @@ Attempt to render a view, if needed.
 #    $c->forward( $c->view('HTML'));
 #}
 
-sub end : ActionClass('RenderView') {}
+sub end : ActionClass('RenderView') { 
+
+	my ( $self, $c ) = @_;
+	$c->response->header('X-Frame-Options' => 'DENY');
+	#$c->response->header('Strict-Transport-Security' => 'max-age=3600');
+	$c->response->header('X-Content-Security-Policy' => "default-src 'self'");
+	$c->response->header('X-Content-Type-Options' => 'nosniff');
+	$c->response->header('X-Download-Options' => 'noopen');
+	$c->response->header('X-XSS-Protection' => "1; 'mode=block'");
+	
+}
 
 =head1 AUTHOR
 

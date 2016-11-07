@@ -30,7 +30,7 @@ sub adddomain :Chained('base') :PathPart('adddomain') :Args(0) {
 	
 	$c->log->debug("ADDDOMAIN: Attempting to add domain " . $domain);
 	
-	my $domain = $c->model('PgDB::CDomain')->create ({
+	$domain = $c->model('PgDB::CDomain')->create ({
 				domain		=>	$domain,
 				customer	=>	$c->user->customer->id,
 			});

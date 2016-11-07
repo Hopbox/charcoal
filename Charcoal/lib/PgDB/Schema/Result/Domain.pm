@@ -197,6 +197,9 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-07-10 16:39:16
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OwtxjDhfFhFNeV5VuvoYPQ
 
+__PACKAGE__->many_to_many(
+	'categories'	=>	'gl_dom_cats', 'category'
+);
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
