@@ -41,7 +41,7 @@ sub auth :Path('/login/auth') :Args(0) {
         if ($c->authenticate({ username => $username,
                                password => $password  } )) {
             # If successful, then let them use the application
-            $c->response->redirect($c->uri_for('/admin'));
+            $c->response->redirect($c->uri_for('/admin/acls'));
             return;
         } 
         else {
@@ -52,7 +52,7 @@ sub auth :Path('/login/auth') :Args(0) {
 
     # If either of above don't work out, send to the login page
 #    $c->stash->{template} = 'login.tt2';
-    $c->response->redirect($c->uri_for('/auth'));
+    $c->response->redirect($c->uri_for('auth'));
     return;
 
 }

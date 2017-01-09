@@ -28,6 +28,8 @@ use Catalyst qw/
     Session::State::Cookie
     Session::Store::FastMmap
 
+    StatusMessage
+
 /;
 
 use Catalyst::Authentication::Store::DBIx::Class;

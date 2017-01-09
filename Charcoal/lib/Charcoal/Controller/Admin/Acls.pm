@@ -21,7 +21,9 @@ Catalyst Controller.
 
 =cut
 
-sub index :Path :Args(0) {
+sub base :Chained('/admin/index') :PathPart('acls') :CaptureArgs(0) {}
+
+sub list :Chained('base') :PathPart('list') :Args(0) {
     my ( $self, $c ) = @_;
 
     my @acls = $c->model('PgDB::Acl')->search( { customer => $c->user->customer->id }, { order_by => { -asc => 'seq' } } );
@@ -83,6 +85,8 @@ sub index :Path :Args(0) {
         
         $acl_hash{access} = $acl_json->{'access'};
         $acl_hash{desc} = $acl_json->{'desc'};
+        $acl_hash{edit_url} = $c->uri_for('edit', $acl_hash{id});
+        $acl_hash{delete_url} = $c->uri_for('delete', $acl_hash{id});
         push @acl_arr, \%acl_hash;
 	}
 	
@@ -91,80 +95,22 @@ sub index :Path :Args(0) {
 	
 
 	$c->forward( $c->view());
+}
+
+sub edit :Chained('base') :PathPart('edit') :Args(1){
+
+	my ($self, $c, $acl_id) = @_;
+	
+	# Populate the ACL hash to show
 
 }
 
-sub acl_list_json :Path('json/list') :Args(0) {
-    my ( $self, $c ) = @_;
+sub delete :Chained('base') :PathPart('delete') :Args(1){
 
-    my @acls = $c->model('PgDB::Acl')->search( { customer => $c->user->customer->id }, { order_by => { -asc => 'seq' } } );
-    my ($acl_seq, $acl_acl, $acl_id);
-
-    my (@acl_arr);
-	use Data::Dumper;
+	my ($self, $c, $acl_id) = @_;
 	
-    foreach my $acl (@acls) {
-        $c->log->debug("ACL: " . $acl->id . "," . $acl->customer->id . ", " . $acl->seq . ", " . $acl->acl);
-        my $acl_json = JSON::XS->new->utf8->allow_nonref->decode($acl->acl);
-        my %acl_hash;
-        $acl_hash{id} = $acl->id;
-        $acl_hash{seq} = $acl->seq;
-        ## Get SRC names and populate the HASH
-        my $src_string;
-        foreach my $src ( @{$acl_json->{'src'}} ){
-			$c->log->debug("SRC: " . $src);
-			if ( $src == 0 ){
-				$src = "ALL";
-				$src_string .= "$src, ";
-			}
-			else {
-				my $src_grp = $c->model('PgDB::Group')->find($src)->name;
-				$c->log->debug("SRCGRP: " . $src_grp);
-				$src_string .= "$src_grp, ";
-			}
-			$src_string =~ s/(.*)(\,\s)$/$1/;
-		}
-        $acl_hash{src} = $src_string;
-        ## GET DST names and populate the HASH
-        my $dst_string;
-        foreach my $dst ( @{$acl_json->{'dst'}} ){
-			$c->log->debug("DST: " . $dst);
-			if ( $dst == 0 ){
-				$dst = "ALL";
-				$dst_string .= "$dst, ";
-			}
-			else {
-				my $dst_cat = $c->model('PgDB::Category')->find($dst)->category;
-				$c->log->debug("DSTCAT: " . $dst_cat);
-				$dst_string .= "$dst_cat, ";
-			}
-		}
-		$dst_string =~ s/^(.*)(,\s+)$/$1/;
-        $acl_hash{dst} = $dst_string;
-        
-        ## GET TIMES names and populate the HASH
-        my $times_string;
-        foreach my $time ( @{$acl_json->{'times'}} ){
-			$c->log->debug("TIME: " . $time);
-			if ( $time == 0 ){
-				$time = "ALL";
-				$times_string .= "$time, ";
-			}
-		}
-		$times_string =~ s/^(.*)(,\s+)$/$1/;
-        $acl_hash{times} = $times_string;
-        
-        $acl_hash{access} = $acl_json->{'access'};
-        $acl_hash{desc} = $acl_json->{'desc'};
-        push @acl_arr, \%acl_hash;
-	}
-	
-	$c->stash->{json} = \@acl_arr;
-
-	$c->forward( 'View::JSON' );
-
+	# Query the object and then delete
 }
-
 
 =encoding utf8
 

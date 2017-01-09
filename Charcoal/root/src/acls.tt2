@@ -36,8 +36,8 @@
                                             <td>[% acl.access %]</td>
                                             <td>[% acl.desc %]</td>
                                             <td>
-												<a href="#" class="btn btn-info btn-sm" role="button" title="Edit ACL">Edit</a>
-												<a href="#" type="button" class="btn btn-danger btn-sm" title="Delete this ACL">Delete</a>
+												<p><a href="[% acl.edit_url %]" class="btn btn-info btn-sm" role="button" title="Edit ACL">Modify</a></p>
+												<p><a href="[% acl.delete_url %]" type="button" class="btn btn-danger btn-sm" title="Delete this ACL">Delete</a></p>
                                             </td>
                                         </tr>
                                     [% END %]

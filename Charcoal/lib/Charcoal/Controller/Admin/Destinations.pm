@@ -21,9 +21,9 @@ Catalyst Controller.
 
 =cut
 
-sub base :Chained('/') :PathPart('admin/destinations') :CaptureArgs(0) {}
+sub base :Chained('/admin/index') :PathPart('destinations') :CaptureArgs(0) {}
 
-sub adddomain :Chained('base') :PathPart('adddomain') :Args(0) {
+sub add :Chained('base') :PathPart('add') :Args(0) {
 
 	my ( $self, $c ) = @_;
 	my $domain = $c->request->params->{domain};
@@ -41,7 +41,7 @@ sub adddomain :Chained('base') :PathPart('adddomain') :Args(0) {
 	$c->detach;
 }
 
-sub dstlist :Chained('base') :PathPart('dstlist') :Args(0) {
+sub list :Chained('base') :PathPart('list') :Args(0) {
     
     my ( $self, $c ) = @_;
 
@@ -67,7 +67,7 @@ sub dstlist :Chained('base') :PathPart('dstlist') :Args(0) {
    # $c->response->body('Matched Charcoal::Controller::Admin::Destinations in Admin::Destinations.');
 }
 
-sub list :Chained('base') :PathPart('groups/list') :Args(0) {
+sub list_grp :Chained('base') :PathPart('groups/list') :Args(0) {
 	my ($self, $c) = @_;
 	
 	my $page = $c->request->params->{page};

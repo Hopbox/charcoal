@@ -24,6 +24,15 @@ Catalyst Controller.
 sub srcgroup :Local :Chained('/api/index') :PathPart('srcgrp') :Args(1) :ActionClass('REST') { }
 sub srcgroups :Local :Chained('/api/index') :PathPart('srcgrps') :Args(0) :ActionClass('REST') { }
 
+sub srcgroup_POST {
+	
+	my ( $self, $c, $gid ) = @_;
+	
+	# We are creating a new group. Ignore the ID provided.
+}
+
+sub srcgroup_PUT {
+}
 sub srcgroup_GET {
 	
 	my ( $self, $c, $gid ) = @_;

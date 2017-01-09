@@ -88,6 +88,25 @@
 
         <!-- Page Content -->
         <div id="page-wrapper">
+			
+			<!-- Flash Messages -->
+			[% IF status_msg %]
+			<p>&nbsp;</p>
+			<div class="alert alert-success alert-dismissable">
+				<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+				<p align="center">[% status_msg %]</p>
+			</div>
+			[% END %]
+			
+			[% IF error_msg %]
+			<p>&nbsp;</p>
+            <div class="alert alert-warning alert-dismissable">
+				<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+				<p align="center">[% error_msg %]</p>
+            </div>
+            [% END %]
+            <!-- Flash Messages End --> 
+            
             [% content %]
         </div>
         <!-- /#page-wrapper -->

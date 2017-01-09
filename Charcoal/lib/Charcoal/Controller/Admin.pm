@@ -21,15 +21,18 @@ Catalyst Controller.
 
 =cut
 
-sub index :Path :Args(0) {
+sub index :Chained('/') :PathPart('admin') :CaptureArgs(0) {
     my ( $self, $c ) = @_;
+
+	$c->stash->{status_msg} = $c->flash->{status_msg} if ( exists $c->flash->{status_msg});
+	$c->stash->{error_msg} = $c->flash->{error_msg} if ( exists $c->flash->{error_msg});
 
     # Display Admin landing page
     # Profile and customer information should be available from Root.pm
     # 
 
-    $c->stash->{no_wrapper} = 0;
-    $c->stash->{template} = 'admin.tt2';
+    #$c->stash->{no_wrapper} = 0;
+    #$c->stash->{template} = 'admin.tt2';
 
 #    $c->response->body('Matched Charcoal::Controller::Admin in Admin.');
 }
