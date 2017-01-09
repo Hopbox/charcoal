@@ -1,0 +1,21 @@
+            <div class="row">
+
+		<!-- Flash Messages -->
+			[% IF status_msg %]
+			<div class="alert alert-success alert-dismissable">
+				<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+				Info: [% status_msg %]
+			</div>
+			[% END %]
+			
+			[% IF error_msg %]
+            <div class="alert alert-warning alert-dismissable">
+				<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+				Warning: [% error_msg %]
+            </div>
+            [% END %]
+            <!-- Flash Messages End --> 
+
+            </div>
+            <!-- /.row -->
+            
