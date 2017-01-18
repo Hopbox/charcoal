@@ -26,13 +26,24 @@ sub base :Chained('/admin/index') :PathPart('acls') :CaptureArgs(0) {}
 sub list :Chained('base') :PathPart('list') :Args(0) {
     my ( $self, $c ) = @_;
 
-    my @acls = $c->model('PgDB::Acl')->search( { customer => $c->user->customer->id }, { order_by => { -asc => 'seq' } } );
+	my $page = $c->request->params->{page} || "";
+	$page = 1 if ( ( $page !~ /^\d+$/ ) or ( !$page ) );
+
+    my $acls = $c->model('PgDB::Acl')->search( { customer => $c->user->customer->id }, 
+														{ 
+															page	=> $page,
+															rows	=> 15,
+															order_by => { -asc => 'seq' } 
+															
+														},
+														
+														);
     my ($acl_seq, $acl_acl, $acl_id);
 
     my (@acl_arr);
 	use Data::Dumper;
 	
-    foreach my $acl (@acls) {
+    foreach my $acl ( $acls->all ) {
         $c->log->debug("ACL: " . $acl->id . "," . $acl->customer->id . ", " . $acl->seq . ", " . $acl->acl);
         my $acl_json = JSON::XS->new->utf8->allow_nonref->decode($acl->acl);
         my %acl_hash;
@@ -91,6 +102,7 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
 	}
 	
 	$c->stash->{acl_list} = \@acl_arr;
+	$c->stash->{pager} = $acls->pager;
 	$c->stash->{template} = 'acls.tt2';
 	
 
@@ -102,6 +114,8 @@ sub edit :Chained('base') :PathPart('edit') :Args(1){
 	my ($self, $c, $acl_id) = @_;
 	
 	# Populate the ACL hash to show
+	
+	# get ACL, all the src, dst with selected ones chosen
 
 }
 

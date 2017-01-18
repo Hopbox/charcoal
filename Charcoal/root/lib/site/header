@@ -39,13 +39,10 @@
                     <ul class="nav" id="side-menu">
                         
                         <li>
-                            <a href="/admin"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
-                        </li>
-                        <li>
                             <a href="#"><i class="fa fa-sitemap fa-fw"></i> ACLs<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
-                                    <a href="[% c.uri_for('/admin/acls') %]">View ACLs</a>
+                                    <a href="[% c.uri_for('/admin/acls/list') %]">View ACLs</a>
                                 </li>
                                 
                                </li>
@@ -72,7 +69,7 @@
 									<a href="/admin/destinations/dstlist">Destinations</a>
 								</li>
                                 <li>
-                                    <a href="/admin/destinations/groups/list">Destination Groups</a>
+                                    <a href="[% c.uri_for('/admin/destinationgroups/list') %]">Destination Groups</a>
                                 </li>
                             </ul>
                             <!-- /.nav-second-level -->

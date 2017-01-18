@@ -41,7 +41,7 @@ sub auth :Path('/login/auth') :Args(0) {
         if ($c->authenticate({ username => $username,
                                password => $password  } )) {
             # If successful, then let them use the application
-            $c->response->redirect($c->uri_for('/admin/acls'));
+            $c->response->redirect($c->uri_for('/admin/acls/list'));
             return;
         } 
         else {

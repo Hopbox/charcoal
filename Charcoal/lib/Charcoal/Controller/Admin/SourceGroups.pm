@@ -109,22 +109,27 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 	my ($self, $c, $grp_id) = @_;
 		
+   	my $page = $c->request->params->{page};
+	$page = 1 if ( ( $page !~ /^\d+$/ ) or (!$page) );
+	
 	my $group = $c->model('PgDB::Group')->find( $grp_id );
 	
-	my @members = $c->model('PgDB::Src')->search( 
+	my $members = $c->model('PgDB::Src')->search( 
 							{ 
 								customer		=>	$c->user->customer->id,
 								'src_groups.grp' => $grp_id,
 							},
 							{ 
 								join => 'src_groups',
-								order_by => [qw/ value src_type /]
+								order_by => [qw/ value src_type /],
+								page	=> $page,
+                                rows	=> 15,
 							}
 					);
 	
 	my @member_arr;
 	
-	foreach my $member (@members) {
+	foreach my $member ($members->all) {
 		my %member_hash;
 		$c->log->debug("SRC: " . $grp_id . "," . $member->id . "," . $member->customer->id . ", " . $member->value . "," . $member->src_type->type);
 		$member_hash{id} 	= $member->id;
@@ -140,6 +145,7 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 	$c->stash->{add_submit_url_user} = $c->uri_for('addmemberuser', $grp_id);
 	$c->stash->{group}			= \%{$group};
 	$c->stash->{member_list} 	= \@member_arr;
+	$c->stash->{pager}			=	$members->pager;
 	$c->stash->{template} 		= 'viewsourcegrp.tt2';
 	
 	$c->forward( $c->view() );

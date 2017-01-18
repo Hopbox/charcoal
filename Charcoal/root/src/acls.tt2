@@ -47,6 +47,44 @@
                             </div>
                             <!-- /.table-responsive -->
                             
+                            [% IF pager %]
+								
+									<div class="panel-footer" align="center">
+										
+										<p>Page [% pager.current_page %] of [% pager.last_page %]</p>
+										<p>
+										[% IF pager.previous_page %]
+											<a href="[% c.req.uri_with( page => pager.first_page) %]" type="button" class="btn btn-default btn-sm" title="First Page">First</a>
+											<a href="[% c.req.uri_with( page => pager.previous_page ) %]" type="button" class="btn btn-default btn-sm" title="Previous Page">Prev</a>
+										[% ELSE %]
+											<a href="[% c.req.uri_with( page => pager.first_page) %]" type="button" class="btn btn-default btn-sm disabled" title="First Page">First</a>
+											<a href="[% c.req.uri_with( page => pager.previous_page ) %]" type="button" class="btn btn-default btn-sm disabled" title="Previous Page">Prev</a>
+										[% END %]
+										&nbsp;
+										[% start = (pager.current_page - 3) > 0 ? (pager.current_page - 3) : 1;
+										FOREACH page IN [ start .. pager.last_page ] %]
+											[% LAST IF loop.count > 6 %]
+											[% IF pager.current_page == page %]
+												<a href="#" type="button" class="btn btn-info btn-sm disabled" title="Page [% page %]">[% page %]</a>
+											[% ELSE %]
+												<a href="[% c.req.uri_with( page => page ) %]" type="button" class="btn btn-default btn-sm" title="Page [% page %]">[% page %]</a>
+											[% END %]
+										[% END %]
+										&nbsp;
+										[% IF pager.next_page %]
+											<a href="[% c.req.uri_with( page => pager.next_page ) %]" type="button" class="btn btn-default btn-sm" title="Next Page">Next</a>
+											<a href="[% c.req.uri_with( page => pager.last_page ) %]" type="button" class="btn btn-default btn-sm" title="Last Page">Last</a>
+										[% ELSE %]
+											<a href="[% c.req.uri_with( page => pager.next_page ) %]" type="button" class="btn btn-default btn-sm disabled" title="Next Page">Next</a>
+											<a href="[% c.req.uri_with( page => pager.last_page ) %]" type="button" class="btn btn-default btn-sm disabled" title="Last Page">Last</a>
+										[% END %]
+										</p>
+									</div>
+									<!--./panel-footer-->
+								
+							[% END %]
+                            <!-- /.pager -->
+                            
                         </div>
                         <!-- /.panel-body -->
                     </div>

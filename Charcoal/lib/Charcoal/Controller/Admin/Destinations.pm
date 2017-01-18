@@ -21,7 +21,29 @@ Catalyst Controller.
 
 =cut
 
-sub base :Chained('/admin/index') :PathPart('destinations') :CaptureArgs(0) {}
+sub base :Chained('/admin/index') :PathPart('destinationgroups') :CaptureArgs(0) {}
+
+sub list :Chained('base') :PathPart('list') :Args(0) {
+
+	my ( $self, $c ) = @_;
+	
+	my $page = $c->request->params->{page};
+	$page = 1 if ( ( $page !~ /^\d+$/ ) or ( !$page ) );
+	
+	my $dstgroups = $c->model('PgDB::Category')->search({
+						customer => $c->user->customer->id,
+						},
+						{
+							page => $page,
+							rows => 15,
+							order_by => { -asc => 'category' }
+						},
+						);
+	$c->stash->{dstgroups}	= [ $dstgroups->all ];
+	$c->stash->{pager}		=  $dstgroups->pager;
+	$c->stash->{template}	= 'dstgroups.tt2';
+   # $c->response->body('Matched Charcoal::Controller::Admin::Destinations in Admin::Destinations.');
+}
 
 sub add :Chained('base') :PathPart('add') :Args(0) {
 
@@ -41,20 +63,21 @@ sub add :Chained('base') :PathPart('add') :Args(0) {
 	$c->detach;
 }
 
-sub list :Chained('base') :PathPart('list') :Args(0) {
-    
-    my ( $self, $c ) = @_;
+sub listmembers :Chained('base') :PathPart('group') :Args(1) {
+    my ($self, $c, $gid) = @_;
 
-	my $page = $c->request->params->{page};
+   	my $page = $c->request->params->{page};
 	$page = 1 if ( ( $page !~ /^\d+$/ ) or (!$page) );
 	
 	my $destinations = $c->model('PgDB::CDomain')->search({ 
 						customer => $c->user->customer->id,
+						'c_dom_cats.category' => $gid,
 						},
 						{
+                            join => 'c_dom_cats',
+                            order_by => { -asc => 'domain' },
 							page	=> $page,
-							rows	=> 10,
-							order_by => { -asc => 'domain' }
+							rows	=> 15,
 						},
 						);
 						
@@ -64,9 +87,10 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
 	
     $c->forward( $c->view() );
    
-   # $c->response->body('Matched Charcoal::Controller::Admin::Destinations in Admin::Destinations.');
-}
 
+
+    }
+    
 sub list_grp :Chained('base') :PathPart('groups/list') :Args(0) {
 	my ($self, $c) = @_;
 	
@@ -78,7 +102,7 @@ sub list_grp :Chained('base') :PathPart('groups/list') :Args(0) {
 						},
 						{
 							page => $page,
-							rows => 10,
+							rows => 15,
 							order_by => { -asc => 'category' }
 						},
 						);
