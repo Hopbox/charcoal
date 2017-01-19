@@ -34,6 +34,10 @@
 														<label for="groupname">Group Name</label>
 														<input type="text" class="form-control" name="groupname" id="groupname" required>
 													</div>
+													<div class="form-group">
+														<label for="groupdesc">Group Description</label>
+														<input type="text" class="form-control" name="groupdesc" id="groupdesc" required>
+													</div>
 													<button type="submit" class="btn btn-success">Submit</button>
 													<button type="reset" class="btn btn-warning">Clear</button>
 												</form>
