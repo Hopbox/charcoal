@@ -15,31 +15,52 @@
                         <!-- /.panel-heading -->
                         <div class="panel-body">
                             <div class="dataTable_wrapper">
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-example">
+                                <table class="table table-unbordered table-condensed table-responsive" id="dataTables-example">
                                     <thead>
-                                        <tr>
-                                            <th>Source Groups</th>
-                                            <th>Destination Groups</th>
-                                            <th>Times</th>
-                                            <th>Access</th>
-                                            <th>Description</th>
-                                            <th>Actions</th>
-                                        </tr>
+                                        
                                     </thead>
+                                    
                                     <tbody>
-                                   
+                                        
                                     [% FOREACH acl IN acl_list %]
-                                    	<tr>
-											<td>[% acl.src %]</td>
-                                            <td>[% acl.dst %]</td>
-                                            <td>[% acl.times %]</td>
-                                            <td>[% acl.access %]</td>
-                                            <td>[% acl.desc %]</td>
-                                            <td>
-												<p><a href="[% acl.edit_url %]" class="btn btn-info btn-sm" role="button" title="Edit ACL">Modify</a></p>
-												<p><a href="[% acl.delete_url %]" type="button" class="btn btn-danger btn-sm" title="Delete this ACL">Delete</a></p>
-                                            </td>
+                                        [% IF acl.access == 'ALLOW' %]
+                                            [% label_class = 'success' %]
+                                        [% ELSE %]
+                                            [% label_class = 'danger' %]
+                                        [% END %]
+                                        <tr class="[% label_class %]">
+                                        <td><span class="glyphicon glyphicon-asterisk"></span></td>
+                                        <td align="right">
+                                                <strong>[% acl.desc %]</strong>
+                                                
+                                                <a href="#" class="btn btn-default btn-xs">
+                                                <span class="glyphicon glyphicon-hand-up"></span>Move Up</a>
+                                                
+                                                <a href="#" class="btn btn-default btn-xs">
+                                                <span class="glyphicon glyphicon-hand-down"></span>Move Down</a>
+                                                
+                                                <a href="[% acl.edit_url %]" class="btn btn-info btn-xs" role="button" title="Edit ACL">Modify</a>
+                                                
+                                                <a href="[% acl.delete_url %]" type="button" class="btn btn-danger btn-xs" title="Delete this ACL">Delete</a>
+                                        </td>
                                         </tr>
+                                    	<tr>
+                                            <td colspan="2">
+                                            <p style="line-height:200%;">
+                                                
+                                                <span class="label label-[% label_class %]">[% acl.access %]</span> if SOURCE is in 
+                                                [% FOREACH src_elem IN acl.src_array %]
+                                                <span class="label label-primary">[% src_elem %]</span>
+                                                [% END %]
+                                                and DESTINATION is in 
+                                                [% FOREACH dst_elem IN acl.dst_array %]
+                                                <span class="label label-default">[% dst_elem %]</span> 
+                                                [% END %]
+                                            </p>
+                                            </td>
+                                    	</tr>
+                                    	<tr><td colspan="2">&nbsp;</td></tr>
+                                    	
                                     [% END %]
                                         
                                     </tbody>

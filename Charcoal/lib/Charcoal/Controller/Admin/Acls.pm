@@ -51,36 +51,44 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
         $acl_hash{seq} = $acl->seq;
         ## Get SRC names and populate the HASH
         my $src_string;
+        my @src_array;
         foreach my $src ( @{$acl_json->{'src'}} ){
 			$c->log->debug("SRC: " . $src);
 			if ( $src == 0 ){
 				$src = "ALL";
 				$src_string .= "$src, ";
+				push @src_array, $src;
 			}
 			else {
 				my $src_grp = $c->model('PgDB::Group')->find($src)->name;
 				$c->log->debug("SRCGRP: " . $src_grp);
 				$src_string .= "$src_grp, ";
+				push @src_array, $src_grp;
 			}
 			$src_string =~ s/(.*)(\,\s)$/$1/;
 		}
         $acl_hash{src} = $src_string;
+        $acl_hash{src_array} = \@src_array;
         ## GET DST names and populate the HASH
         my $dst_string;
+        my @dst_array;
         foreach my $dst ( @{$acl_json->{'dst'}} ){
 			$c->log->debug("DST: " . $dst);
 			if ( $dst == 0 ){
 				$dst = "ALL";
 				$dst_string .= "$dst, ";
+				push @dst_array, $dst;
 			}
 			else {
 				my $dst_cat = $c->model('PgDB::Category')->find($dst)->category;
 				$c->log->debug("DSTCAT: " . $dst_cat);
 				$dst_string .= "$dst_cat, ";
+				push @dst_array, $dst_cat;
 			}
 		}
 		$dst_string =~ s/^(.*)(,\s+)$/$1/;
         $acl_hash{dst} = $dst_string;
+        $acl_hash{dst_array} = \@dst_array;
         
         ## GET TIMES names and populate the HASH
         my $times_string;
