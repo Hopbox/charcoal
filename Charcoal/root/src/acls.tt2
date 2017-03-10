@@ -29,7 +29,7 @@
                                             [% label_class = 'danger' %]
                                         [% END %]
                                         <tr class="[% label_class %]">
-                                        <td><span class="glyphicon glyphicon-asterisk"></span></td>
+                                        <td><span class="glyphicon glyphicon-chevron-down"></span></td>
                                         <td align="right">
                                                 <strong>[% acl.desc %]</strong>
                                                 
@@ -46,7 +46,7 @@
                                         </tr>
                                     	<tr>
                                             <td colspan="2">
-                                            <p style="line-height:200%;">
+                                            <p style="line-height:1.5;">
                                                 
                                                 <span class="label label-[% label_class %]">[% acl.access %]</span> if SOURCE is in 
                                                 [% FOREACH src_elem IN acl.src_array %]

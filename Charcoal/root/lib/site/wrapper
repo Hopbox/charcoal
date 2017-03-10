@@ -1,7 +1,10 @@
 [% IF template.name.match('\.(css|js|txt|html)');
      debug("Passing page through as text: $template.name");
      content;
-   ELSE;
+    ELSIF template.name.match('login\.tt2');
+      debug("Passing $template.name without applying layout");
+      content;
+     ELSE;
      debug("Applying HTML page layout wrappers to $template.name\n");
      content WRAPPER site/html + site/layout;
    END;

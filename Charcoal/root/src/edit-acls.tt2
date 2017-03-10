@@ -1,0 +1,121 @@
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Edit ACL</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            Edit ACL - [% acl.desc %]
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                        <form name="editaclform" role="form" action="[% submit_edit_acl %]" method="POST">
+                            <fieldset>
+                                <div class="form-group">
+                                    <label for="desc">ACL Name</label>
+                                    <input type="text" class="form-control" name="desc" id="desc" required value="[% acl.desc %]">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="access">Access</label>
+                                    <select class="form-control" name="access" id="access">
+                                        [% IF acl.access == 'ALLOW' %]
+                                            <option value="ALLOW" selected>ALLOW</option> 
+                                            <option value="DENY">DENY</option>
+                                        [% ELSIF acl.access == 'DENY' %]
+                                            <option value="ALLOW">ALLOW</option> 
+                                            <option value="DENY" selected>DENY</option>
+                                        [% END %]
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="src">Source</label>
+                                    
+                                        [%IF acl.src_hash_selected.exists('0') %]
+                                    <div class="checkbox">
+                                        <label><input type="checkbox" name="src" checked>ALL</label>
+                                    </div>
+                                            
+                                            <select multiple="multiple" class="form-control js-example-basic-multiple js-states" id="src">
+                                                [% FOREACH src_key IN acl.all_src_hash.keys %]
+                                        
+                                                    <option value="[% src_key %]">[% acl.all_src_hash.$src_key %]</option>
+                                            
+                                                [% END %]
+                                        
+                                            </select>
+                                        [% ELSE %]
+                                            <div class="checkbox">
+                                                <label><input type="checkbox" name="src">ALL</label>
+                                            </div>
+                                            
+                                            <select multiple class="form-control" id="dst">
+                                                [% FOREACH src_key IN acl.src_hash_selected.keys.sort %]
+                                        
+                                            <option value="[% src_key %]" id="[% all_src_key %]" selected>[% acl.src_hash_selected.$src_key %]</option>
+                                            
+                                        [% END %]
+                                        
+                                        [% FOREACH all_src_key IN acl.all_src_hash.keys.sort %]
+                                        
+                                            <option value="[% all_src_key %]" id="[% all_src_key %]">[% acl.all_src_hash.$all_src_key %]</option>
+                                        
+                                        [% END %]
+                                    </select>
+                                        [% END %]
+                                    </div>
+                                    
+                                    
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="dst">Destination</label>
+                                    <select multiple class="form-control" id="dst">
+                                        [% FOREACH dst_key IN acl.dst_hash_selected.keys.sort %]
+                                        
+                                            <option value="[% dst_key %]" id="[% all_dst_key %]" selected>[% acl.dst_hash_selected.$dst_key %]</option>
+                                            
+                                        [% END %]
+                                        
+                                        [% FOREACH all_dst_key IN acl.all_dst_hash.keys.sort %]
+                                        
+                                            <option value="[% all_dst_key %]" id="[% all_dst_key %]">[% acl.all_dst_hash.$all_dst_key %]</option>
+                                        
+                                        [% END %]
+                                    </select>
+                                </div>
+                                
+                                <script type="text/javascript">
+                                    $("#src").select2({
+                                        sortResults: function(results) {
+                                             return results.sort();
+                                        }
+                                    }
+                                    );
+                                    
+                                    $("#dst").select2({
+                                        minimumResultsForSearch: Infinity
+                                    }
+                                    );
+                                </script>
+                                
+                                <input type="hidden" class="form-control" name="times" id="times" value="[% acl.times %]">
+                                
+                                <button type="submit" class="btn btn-success">Submit</button>
+                                <button type="reset" class="btn btn-warning">Clear</button>
+                            </fieldset>
+                            
+                        </form>
+                        <!-- /. form -->
+                        </div>
+                        <!-- /.panel-body-->
+                    </div>
+                    <!-- /. panel -->
+                </div>
+            </div>
+            <!-- /. row -->

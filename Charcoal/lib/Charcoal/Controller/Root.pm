@@ -31,7 +31,7 @@ The root page (/)
 
 sub index : Path : Args(0){
         my ($self, $c) = @_;
-        $c->stash->{template} = 'welcome.tt2';
+        $c->stash->{template} = 'login.tt2';
 }
 
 =head2 auto
@@ -93,6 +93,8 @@ sub auto : Private {
     }
 
     # User found, so return 1 to continue with processing after this 'auto'
+    $c->stash->{user_fname} = $c->user->firstname;
+    $c->stash->{user_sname} = $c->user->lastname;
     return 1;
 }
 
