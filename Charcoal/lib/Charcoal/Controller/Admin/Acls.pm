@@ -30,7 +30,11 @@ sub reorder :Chained('base') :PathPart('reorder') :Args(0) {
     my $acl = $c->request->params->{acl} || "";
     my $move = $c->request->params->{move} || "";
     
+    $c->res->redirect($c->uri_for('list'));
+    $c->detach;
+    
 }
+
 sub list :Chained('base') :PathPart('list') :Args(0) {
     my ( $self, $c ) = @_;
 
@@ -166,17 +170,15 @@ sub edit :Chained('base') :PathPart('edit') :Args(1){
 							order_by => { -asc => 'name' } 
 						});
     
-    my @all_src_grp_arr;
-    
+        
     foreach my $all_src_grp (@all_src_grps) {
-		my %all_src_grp_hash;
+		
 		
 		$c->log->debug("ALL SRC GRP: " . $all_src_grp->id . "," . $all_src_grp->name);
 		
-		$all_src_grp_hash{id}	= $all_src_grp->id;
-		$all_src_grp_hash{name} = $all_src_grp->name;
-		push @all_src_grp_arr, \%all_src_hash;
-	}
+		$all_src_hash{$all_src_grp->id}	= $all_src_grp->name; 
+		
+    }
     
     
     
@@ -279,8 +281,36 @@ sub edit :Chained('base') :PathPart('edit') :Args(1){
     $c->stash->{acl} = \%acl_hash;
 	
 	$c->stash->{template} = 'edit-acls.tt2';
+	$c->stash->{submit_edit_acl} = $c->uri_for('edit_submit');
 	$c->forward( $c->view());
 
+}
+
+sub edit_submit :Chained('base') :PathPart('edit_submit') :Args(0){
+
+	my ($self, $c) = @_;
+	
+	my $cust_id = $c->user->customer->id;
+	my $acl_id = $c->req->param("id") || "";
+	my $acl_access = $c->req->param("access") || "";;
+	my $acl_src_all = $c->req->param("src_all") || "";
+    my $acl_src = $c->req->param("src") || "";
+    my $acl_dst_all = $c->req->param("dst_all") || "";
+    my $acl_dst = $c->req->param("dst") || "";
+    my $acl_times = $c->req->param("times") || "ALL";
+	
+	$c->log->debug("EDIT-SUBMIT ACL: acl_id = " . $acl_id . " CUST ID: " . $cust_id);
+	
+	# Populate the ACL hash to show
+	my $acl = $c->model('PgDB::ACL')->find(
+                                            {
+                                                customer => $c->user->customer->id,
+                                                id       => $acl_id,
+                                            },
+                                        );
+                                        
+    $c->res->redirect($c->uri_for('list'));
+	$c->detach;
 }
 
 sub create :Chained('base') :PathPart('create') :Args(0){
