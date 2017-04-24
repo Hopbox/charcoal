@@ -2,6 +2,8 @@ package Charcoal::Controller::Admin::Acls;
 use Moose;
 use namespace::autoclean;
 
+use Data::Dumper;
+
 BEGIN { extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -122,13 +124,164 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
         $acl_hash{delete_url} = $c->uri_for('delete', $acl_hash{id});
         push @acl_arr, \%acl_hash;
 	}
-	
+	$c->stash->{create_url} = $c->uri_for('create');
 	$c->stash->{acl_list} = \@acl_arr;
 	$c->stash->{pager} = $acls->pager;
 	$c->stash->{template} = 'acls.tt2';
 	
 
 	$c->forward( $c->view());
+}
+
+sub create :Chained('base') :PathPart('create') :Args(0){
+
+    my ($self, $c, $acl_id) = @_;
+	
+	my $cust_id = $c->user->customer->id;
+	
+	## Get all the CUSTOMER SRC & DST groups
+	
+	my (%all_src_hash, %acl_hash);
+    
+    my @all_src_grps = $c->model('PgDB::Group')->search({ 
+						customer => $c->user->customer->id 
+						},
+						{ 
+							order_by => { -asc => 'name' } 
+						});
+    
+        
+    foreach my $all_src_grp (@all_src_grps) {
+		
+		
+		$c->log->debug("ALL SRC GRP: " . $all_src_grp->id . "," . $all_src_grp->name);
+		
+		$all_src_hash{$all_src_grp->id}	= $all_src_grp->name; 
+		
+    }
+    
+ 
+        
+    $acl_hash{all_src_hash} = \%all_src_hash;
+    
+    my $all_cats = $c->model('PgDB::Category')->search(
+                                                    {
+                                                        customer => [ 1, $c->user->customer->id ] ,
+                                                    },
+                                                    {
+                                                        order_by => { -asc => 'category' }
+                                                    });
+    my %all_dst_hash;                                            
+    foreach my $cat ($all_cats->all){
+        $c->log->debug("CUSTDST: " . $cat->id . $cat->category);
+        $all_dst_hash{$cat->id} = $cat->category;
+    }
+    
+    $acl_hash{all_dst_hash} = \%all_dst_hash;
+	
+	## Global DST groups
+
+    $c->stash->{acl} = \%acl_hash;
+	$c->stash->{submit_create_acl} = $c->uri_for('create_submit');
+	$c->stash->{template} = 'create-acl.tt2';
+	$c->forward( $c->view());
+
+}
+
+sub create_submit :Chained('base') :PathPart('create_submit'): Args(){
+	
+	my ($self, $c) = @_;
+	
+	my $cust_id = $c->user->customer->id;
+	
+	my $acl_desc = $c->req->params->{desc} || "No Description";
+	my $acl_access = $c->req->params->{access} || "";;
+	my $acl_src_all = $c->req->params->{src_all} || "";
+    my @acl_src = map { ref $_ ? @$_ : defined $_ ? $_:() } $c->req->params->{src} || "0";
+    my $acl_dst_all = $c->req->params->{dst_all} || "";
+    my @acl_dst = map { ref $_ ? @$_ : defined $_ ? $_:() } $c->req->params->{dst} || "0";
+    my @acl_times = map { ref $_ ? @$_ : defined $_ ? $_:() } $c->req->params->{times} || "0";
+    
+    @acl_src = "0" if ($acl_src_all);
+    @acl_dst = "0" if ($acl_dst_all);
+    @acl_times = "0";
+	
+	$c->log->debug("CREATE-SUBMIT ACL: acl_desc = " . $acl_desc . " CUST ID: " . $cust_id);
+	
+	# Populate the ACL hash to show
+	                                    
+    my %for_acl;
+    
+    $for_acl{src} = \@acl_src;
+    $for_acl{dst} = \@acl_dst;
+    $for_acl{desc} = $acl_desc;
+    $for_acl{access} = $acl_access;
+    $for_acl{times} = \@acl_times;
+    
+    my $acl_json = JSON::XS->new->utf8->allow_nonref->encode(\%for_acl);
+    
+#    my %acl_db_json;
+#    $acl_db_json{acl} = $acl_json;
+#    
+#    my $acl = $c->model('PgDB::ACL')->new();
+#    
+#    my $result = $acl->update(\%acl_db_json);
+#    
+#    if ($result == -1){
+#        $c->flash->{error_msg} = "ACL $acl_desc could not be created.";
+#    }
+#    else {
+#        $c->flash->{status_msg} = "ACL $acl_desc created successfully.";
+#    }
+#    
+    
+    $c->log->debug("CREATE-SUBMIT ACL JSON: " . $acl_json);
+    
+    ### GET ALL THE ACLs for customer ordered by SEQ. Start new sequence from 2 and create new ACL with SEQ 1.
+    
+    my $existing_acls = $c->model('PgDB::ACL')->search( { customer => $cust_id }, { order_by => { -asc => 'seq' } } );
+    
+    
+    my $index = 2;
+    
+    foreach my $existing_acl ($existing_acls->all){
+        $c->log->debug("EXISTING ACL: SEQ: " . $existing_acl->seq . " ID: " . $existing_acl->id);
+        
+        my $result = $existing_acl->update( { seq => $index } );
+        
+        if ($result == -1){
+            $c->flash->{error_msg} = "ACL $acl_desc could not be created.";
+            $c->res->redirect($c->uri_for('list'));
+            $c->detach;
+        }
+        
+        
+        $index++;
+    }
+    
+    my %new_acl;
+    
+    
+    $new_acl{customer} = $cust_id;
+    $new_acl{seq} = 1;
+    $new_acl{acl} = $acl_json;
+    
+    $c->log->debug("CREATE-SUBMIT ACL: Creating NEW ACL: SEQ " . $new_acl{seq} . " CUST: " . $new_acl{customer} );
+    $c->log->debug("CREATE-SUBMIT ACL: Creating NEW ACL: ACL " . $new_acl{acl});
+    
+    
+    
+    my $result = $c->model('PgDB::ACL')->create(\%new_acl);
+    
+    if ($result == -1){
+        $c->flash->{error_msg} = "ACL $acl_desc could not be created.";
+    }
+    else {
+        $c->flash->{status_msg} = "ACL $acl_desc created successfully.";
+    }
+    
+    $c->res->redirect($c->uri_for('list'));
+	$c->detach;
 }
 
 sub edit :Chained('base') :PathPart('edit') :Args(1){
@@ -291,15 +444,22 @@ sub edit_submit :Chained('base') :PathPart('edit_submit') :Args(0){
 	my ($self, $c) = @_;
 	
 	my $cust_id = $c->user->customer->id;
-	my $acl_id = $c->req->param("id") || "";
-	my $acl_access = $c->req->param("access") || "";;
-	my $acl_src_all = $c->req->param("src_all") || "";
-    my $acl_src = $c->req->param("src") || "";
-    my $acl_dst_all = $c->req->param("dst_all") || "";
-    my $acl_dst = $c->req->param("dst") || "";
-    my $acl_times = $c->req->param("times") || "ALL";
+	my $acl_id = $c->req->params->{id} || "";
+	my $acl_desc = $c->req->params->{desc} || "No Description";
+	my $acl_access = $c->req->params->{access} || "";;
+	my $acl_src_all = $c->req->params->{src_all} || "";
+    my @acl_src = map { ref $_ ? @$_ : defined $_ ? $_:() } $c->req->params->{src} || "0";
+    my $acl_dst_all = $c->req->params->{dst_all} || "";
+    my @acl_dst = map { ref $_ ? @$_ : defined $_ ? $_:() } $c->req->params->{dst} || "0";
+    my @acl_times = map { ref $_ ? @$_ : defined $_ ? $_:() } $c->req->params->{times} || "0";
+    
+    @acl_src = "0" if ($acl_src_all);
+    @acl_dst = "0" if ($acl_dst_all);
+    @acl_times = "0";
 	
 	$c->log->debug("EDIT-SUBMIT ACL: acl_id = " . $acl_id . " CUST ID: " . $cust_id);
+	
+#	$c->log->debug("EDIT-SUBMIT ACL: src = " . @$acl_src .  $acl_src_all . " dst = " . @$acl_dst . $acl_dst_all);
 	
 	# Populate the ACL hash to show
 	my $acl = $c->model('PgDB::ACL')->find(
@@ -309,11 +469,33 @@ sub edit_submit :Chained('base') :PathPart('edit_submit') :Args(0){
                                             },
                                         );
                                         
+    my %for_acl;
+    
+    $for_acl{src} = \@acl_src;
+    $for_acl{dst} = \@acl_dst;
+    $for_acl{desc} = $acl_desc;
+    $for_acl{access} = $acl_access;
+    $for_acl{times} = \@acl_times;
+    
+    my $acl_json = JSON::XS->new->utf8->allow_nonref->encode(\%for_acl);
+    
+    my %acl_db_json;
+    $acl_db_json{acl} = $acl_json;
+    
+    my $result = $acl->update(\%acl_db_json);
+    
+    if ($result == -1){
+        $c->flash->{error_msg} = "ACL $acl_desc could not be updated.";
+    }
+    else {
+        $c->flash->{status_msg} = "ACL $acl_desc updated successfully.";
+    }
+    
+    
+    $c->log->debug("EDIT-SUBMIT ACL JSON: " . $acl_json);
+    
     $c->res->redirect($c->uri_for('list'));
 	$c->detach;
-}
-
-sub create :Chained('base') :PathPart('create') :Args(0){
 }
 
 sub delete :Chained('base') :PathPart('delete') :Args(1){
@@ -321,6 +503,26 @@ sub delete :Chained('base') :PathPart('delete') :Args(1){
 	my ($self, $c, $acl_id) = @_;
 	
 	# Query the object and then delete
+	my $acl = $c->model('PgDB::ACL')->find(
+                                            {
+                                                customer => $c->user->customer->id,
+                                                id       => $acl_id,
+                                            },
+                                        );
+                                        
+    my $result = $acl->delete;
+    
+    if ($result == -1){
+        $c->flash->{error_msg} = "ACL could not be deleted.";
+    }
+    else {
+        $c->flash->{status_msg} = "ACL deleted successfully.";
+    }
+    
+    
+	
+	$c->res->redirect($c->uri_for('list'));
+	$c->detach;
 }
 
 =encoding utf8
