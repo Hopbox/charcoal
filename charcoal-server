@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #
 # Charcoal - URL Re-Director/Re-writer Server for Squid
 # Copyright (C) 2012 Unmukti Technology Pvt Ltd <info@unmukti.in>
@@ -43,8 +43,8 @@ my $CACHE = 0;
 # The AutoCommit attribute should always be explicitly set
 use DBD::Pg qw(:pg_types :async);
 
-my $pgdbhost = 'localhost';
-#my $pgdbhost = '10.28.0.1';
+#my $pgdbhost = 'localhost';
+my $pgdbhost = '10.28.0.1';
 my $pgdbname = 'charcoaldb';
 my $pgdbuser = 'charcoal';
 my $pgdbpass = 'charcoa1pa55';
@@ -193,16 +193,18 @@ sub check_acl {
                 and acl::jsonb#>'{dst}' \\? '0' order by seq desc limit 1";
     $sth = $dbh->prepare($sql);
     $sth->execute($custid);
-    my ($seq, $result);
+    my ($seq, $result, $def_seq);
     $sth->bind_columns(\$seq, \$result);
     while($sth->fetch()){
         print STDERR "{$api} >>>> Got default access at seq $seq as $result\n" if $DEBUG;
 		$access_hash{$seq} = $result;
+		$def_seq = $seq;
     }
 
     $ACCESS = 1 if $result eq "ALLOW";
     $ACCESS = 0 if $result eq "DENY";
-
+    
+    print STDERR "{$api} **** DEF SEQ is $def_seq\n" if $DEBUG;
     print STDERR "{$api} **** ACCESS is now $ACCESS\n" if $DEBUG;
 
 
@@ -215,6 +217,82 @@ sub check_acl {
         return "OK\r\n" if $squidver == 3;
         return;
     }
+    
+    
+    ### USE NetAddr::IP module - $ip->within()
+	## Get the group IDs of the SRC for CUST
+	# 1. Check all the "src" for the customer with type "ip"
+	# 2. Check all the "src" for the customer with type "iprange"
+	# 3. Check all the "src" for the customer with type "network"
+	# 4. Check all the "src" for the customer with type "user"
+	## Get the group IDs for each of the matching "src"
+	# Return
+
+    
+    print STDERR "{$api} Getting src_groups for the src: $custid, $srcip, $ident\n" if $DEBUG;
+	
+    my @src_grp;
+	
+    $sql = qq/ SELECT id,value FROM src WHERE customer = ? AND src_type in (2, 3, 4) /;
+    $sth = $dbh->prepare($sql);
+    $sth->execute($custid);
+	
+    my $src_ip_obj = NetAddr::IP->new($srcip);
+	
+    my ($src_id, $db_src, %srchash, @src_values, $src_group_id);
+	
+    $sth->bind_columns(\$src_id, \$db_src);
+	
+    while ($sth->fetch()){
+	
+        print STDERR "{$api} Checking if $srcip lies within/matches $db_src.\n" if $DEBUG;
+	
+        if ( $src_ip_obj->within ( NetAddr::IP->new( $db_src ) ) ){
+            my $sql = qq / SELECT grp FROM src_groups WHERE member = ? /;
+            my $sth = $dbh->prepare($sql);
+            $sth->execute("$src_id");
+            $sth->bind_columns(\$src_group_id);
+	
+            while ($sth->fetch()){
+                print STDERR "{$api} Adding $src_group_id to src_group list for $db_src/$srcip\n" if $DEBUG;
+                push @src_grp, $src_group_id;
+            }
+            $sth->finish;
+	
+        }
+	
+    }
+    $sth->finish;
+	
+    if ($ident ne '-'){
+        $sql = qq/ SELECT src_groups.grp from src, src_groups WHERE src.customer = ? AND src.value = ? AND src_groups.member = src.id /;
+        $sth = $dbh->prepare($sql);
+        $sth->execute($custid, $ident);
+	
+        $sth->bind_columns(\$src_group_id);
+        while ($sth->fetch()){
+            push @src_grp, $src_group_id;
+        }
+        $sth->finish;
+    }
+	
+	
+	
+    my ($srcstring, $dststring);
+    my $src_grp_count = $#src_grp + 1;
+	
+    if ($src_grp_count){
+        foreach (@src_grp){
+            $_ = "\'$_\'";
+            print STDERR "{$api} Source group $_\n" if $DEBUG;
+            $srcstring = join (',', $srcstring, $_);
+        }
+    }
+    else{
+        $srcstring = "\'0\'";
+    }
+    
+    $srcstring =~ s/^,//;
 
     while ($dst) {
 	    print STDERR "{$api} #### Getting categories for destination $dst.\n" if $DEBUG;
@@ -245,96 +323,27 @@ sub check_acl {
 	
 	    print STDERR "{$api} Categories: @categories \n" if $DEBUG;
 	
-	    print STDERR "{$api} Getting src_groups for the src: $custid, $srcip, $ident\n" if $DEBUG;
 	
-	    my @src_grp;
-	
-	### USE NetAddr::IP module - $ip->within()
-	## Get the group IDs of the SRC for CUST
-	# 1. Check all the "src" for the customer with type "ip"
-	# 2. Check all the "src" for the customer with type "iprange"
-	# 3. Check all the "src" for the customer with type "network"
-	# 4. Check all the "src" for the customer with type "user"
-	## Get the group IDs for each of the matching "src"
-	# Return
-	
-	    $sql = qq/ SELECT id,value FROM src WHERE customer = ? AND src_type in (2, 3, 4) /;
-	    $sth = $dbh->prepare($sql);
-	    $sth->execute($custid);
-	
-	
-	    my $src_ip_obj = NetAddr::IP->new($srcip);
-	
-	    my ($src_id, $db_src, %srchash, @src_values, $src_group_id);
-	
-	    $sth->bind_columns(\$src_id, \$db_src);
-	
-	    while ($sth->fetch()){
-	
-	        print STDERR "{$api} Checking if $srcip lies within/matches $db_src.\n" if $DEBUG;
-	
-	        if ( $src_ip_obj->within ( NetAddr::IP->new( $db_src ) ) ){
-	            my $sql = qq / SELECT grp FROM src_groups WHERE member = ? /;
-	            my $sth = $dbh->prepare($sql);
-	            $sth->execute("$src_id");
-	            $sth->bind_columns(\$src_group_id);
-	
-	            while ($sth->fetch()){
-	                print STDERR "{$api} Adding $src_group_id to src_group list for $db_src/$srcip\n" if $DEBUG;
-	                push @src_grp, $src_group_id;
-	            }
-	            $sth->finish;
-	
-	        }
-	
-	    }
-	    $sth->finish;
-	
-	    if ($ident ne '-'){
-	        $sql = qq/ SELECT src_groups.grp from src, src_groups WHERE src.customer = ? AND src.value = ? AND src_groups.member = src.id /;
-	        $sth = $dbh->prepare($sql);
-	        $sth->execute($custid, $ident);
-	
-	        $sth->bind_columns(\$src_group_id);
-	        while ($sth->fetch()){
-	            push @src_grp, $src_group_id;
-	        }
-	        $sth->finish;
-	    }
-	
-	# Get all the rules which have SRC -> 0 (ALL) & DST -> 0 or request DST
+    # Get all the rules which have SRC -> 0 (ALL) & DST -> 0 or request DST
 	    undef $sql; undef $sth;
 	    $sql =   "SELECT seq AS seq, acl::jsonb#>>'{access}' AS access from acls where \
-	                customer = ? and seq != 99999 ";
+	                customer = ? and seq != ?";
+	                #and seq != 99999 ";
 	
-	    my ($srcstring, $dststring);
-	    my $src_grp_count = $#src_grp + 1;
+
 	    my $cat_count = $#categories + 1;
 	
 	    print STDERR "{$api} Source Group Count: $src_grp_count Categories Count: $cat_count \n" if $DEBUG;
 
         if (!$src_grp_count && !$cat_count){
 			print STDERR "{$api} src & cat both are ZERO. No point in querying. NEXT\n" if $DEBUG;
-			$dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." preceeded by something, make it null and exit;
+			$dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." followed by something, make it null and exit;
         	$dst =~ s/^.*?\.(.*)/$1/; ## chop first sub-domain part from left
         	print STDERR "{$api} >>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
 			next;
         }
 	
 	
-		if ($src_grp_count){
-	        foreach (@src_grp){
-			$_ = "\'$_\'";
-			print STDERR "{$api} Source group $_\n" if $DEBUG;
-			$srcstring = join (',', $srcstring, $_);
-	        }
-		}
-		else{
-	        $srcstring = "\'0\'";
-		}
-
-        $srcstring =~ s/^,//;
-
         $sql = $sql . " and ((acl::jsonb#>\'{src}\' \\?| array[$srcstring] ";
 	
 		if ($cat_count){
@@ -356,36 +365,39 @@ sub check_acl {
 		$sql = $sql . " OR (acl::jsonb#>\'{src}\' \\?| array[$srcstring] and acl::jsonb#>\'{dst}\' \\?| array['0'])";
 		$sql = $sql . " ) ";
 	
-		$sql = $sql . ' order by seq desc';
+		$sql = $sql . ' order by seq asc';
 	       
 		print STDERR "{$api} Getting rules with srcstring $srcstring and dststring $dststring\n" if $DEBUG;
 		print STDERR "{$api} Query is: $sql\n" if $DEBUG;
 	
 		$sth = $dbh->prepare($sql);
-		$sth->execute($custid);
+		$sth->execute($custid, $def_seq);
 	
 		my @rules;
 		undef $seq; undef $result;
 		$sth->bind_columns(\$seq, \$result);
 		while ($sth->fetch()){
 			print STDERR "{$api} >>>> Got rule seq: $seq and access: $result\n" if $DEBUG;
-	 		next if $seq == 99999;	
-			$access_hash{$seq} = $result;
+#	 		next if $seq == 99999;	
+            next if $seq == $def_seq;
+            $access_hash{$seq} = $result;
 		}
 		$sth->finish;
 		$ACCESS = 1 if $result eq "ALLOW";
         $ACCESS = 0 if $result eq "DENY";
+        
+        print STDERR "{$api} Access is now $ACCESS\n";
 
-        $dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." preceeded by something, make it null and exit;
+        $dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." followed by something, make it null and exit;
         $dst =~ s/^.*?\.(.*)/$1/; ## chop first sub-domain part from left
         print STDERR "{$api} >>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
 	
     }
 
-	for my $key ( sort keys %access_hash ){
+	for my $key ( sort {$a<=>$b} keys %access_hash ){
 		print STDERR "{$api} ***** Seq $key: $access_hash{$key}\n" if $DEBUG;
 	}
-	my $effective_rule_key = (sort keys %access_hash)[0];
+	my $effective_rule_key = (sort {$a<=>$b} keys %access_hash)[0];
 
 	$ACCESS = $access_hash{$effective_rule_key};
 
@@ -398,9 +410,9 @@ sub check_acl {
         return;
     }
     else{
-	my $redir;
-	$redir = "http://hopbox.in/cgi-bin/blockmsg.cgi?url=$displaydst&clientaddr=$srcip&clientuser=$ident" if ($scheme eq 'http');
-	$redir = "https://hopbox.in/cgi-bin/blockmsg.cgi?url=$displaydst&clientaddr=$srcip&clientuser=$ident" if ($path eq '443');
+        my $redir;
+        $redir = "http://hopbox.in/cgi-bin/blockmsg.cgi?url=$displaydst&clientaddr=$srcip&clientuser=$ident" if ($scheme eq 'http');
+        $redir = "https://hopbox.in/cgi-bin/blockmsg.cgi?url=$displaydst&clientaddr=$srcip&clientuser=$ident" if ($path eq '443');
         print STDERR "{$api} Returning to main loop, with ACCESS DENY (squid version is $squidver)\n" if $DEBUG;
         return "OK status=302 url=\"$redir\"" if $squidver == 3;
         return "302:$redir" if $squidver == 2;
