@@ -25,16 +25,64 @@ Catalyst Controller.
 
 sub base :Chained('/admin/index') :PathPart('acls') :CaptureArgs(0) {}
 
-sub reorder :Chained('base') :PathPart('reorder') :Args(0) {
-
-    my ($self, $c) = @_;
+sub moveup :Chained('base') :PathPart('moveup') :Args(1) {
     
-    my $acl = $c->request->params->{acl} || "";
-    my $move = $c->request->params->{move} || "";
+    my ( $self, $c, $acl_id ) = @_;
+
+    ## Find the rule above this and swap SEQ
+    
+    my $this_acl = $c->model('PgDB::ACL')->find( {customer => $c->user->customer->id, id => $acl_id });
+    my $this_seq = $this_acl->seq;
+    
+    my $oneup = $c->model('PgDB::ACL')->search( { customer => $c->user->customer->id,
+                                                  seq   => { '<' => $this_seq },
+                                                    },
+                                                {
+                                                    
+                                                    order_by => { -desc => 'seq' },
+                                                    rows     => 1,
+                                                },
+                                            )->single;
+    
+    if ($oneup){
+        my $oneup_seq = $oneup->seq;
+        $oneup->update( {'seq' => $this_seq} );
+        $this_acl->update( {'seq' => $oneup_seq} );
+        $c->flash->{status_msg} = "ACLs reordered successfully.";
+    }
     
     $c->res->redirect($c->uri_for('list'));
     $c->detach;
+}
+
+sub movedown :Chained('base') :PathPart('movedown') :Args(1) {
+
+    my ( $self, $c, $acl_id ) = @_;
+
+    ## Find the rule below this and swap SEQ
     
+    my $this_acl = $c->model('PgDB::ACL')->find( {customer => $c->user->customer->id, id => $acl_id });
+    my $this_seq = $this_acl->seq;
+    
+    my $onedown = $c->model('PgDB::ACL')->search( { customer => $c->user->customer->id,
+                                                  seq   => { '>' => $this_seq },
+                                                    },
+                                                {
+                                                    
+                                                    order_by => { -asc => 'seq' },
+                                                    rows     => 1,
+                                                },
+                                            )->single;
+    
+    if ($onedown){
+        my $onedown_seq = $onedown->seq;
+        $onedown->update( {'seq' => $this_seq} );
+        $this_acl->update( {'seq' => $onedown_seq} );
+        $c->flash->{status_msg} = "ACLs reordered successfully.";
+    }
+    $c->res->redirect($c->uri_for('list'));
+	$c->detach;
+
 }
 
 sub list :Chained('base') :PathPart('list') :Args(0) {
@@ -120,6 +168,8 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
         
         $acl_hash{access} = $acl_json->{'access'};
         $acl_hash{desc} = $acl_json->{'desc'};
+        $acl_hash{moveup_url} = $c->uri_for('moveup', $acl_hash{id});
+        $acl_hash{movedown_url} = $c->uri_for('movedown', $acl_hash{id});
         $acl_hash{edit_url} = $c->uri_for('edit', $acl_hash{id});
         $acl_hash{delete_url} = $c->uri_for('delete', $acl_hash{id});
         push @acl_arr, \%acl_hash;
@@ -188,7 +238,7 @@ sub create :Chained('base') :PathPart('create') :Args(0){
 
 }
 
-sub create_submit :Chained('base') :PathPart('create_submit'): Args(){
+sub create_submit :Chained('base') :PathPart('create_submit'): Args(0){
 	
 	my ($self, $c) = @_;
 	

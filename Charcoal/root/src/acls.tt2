@@ -37,10 +37,10 @@
                                         <td align="right">
                                                 <strong>[% acl.desc %]</strong>
                                                 
-                                                <a href="#" class="btn btn-default btn-xs">
+                                                <a href="[% acl.moveup_url %]" type="button" class="btn btn-default btn-xs">
                                                 <span class="glyphicon glyphicon-hand-up"></span>Move Up</a>
                                                 
-                                                <a href="#" class="btn btn-default btn-xs">
+                                                <a href="[% acl.movedown_url %]" type="button" class="btn btn-default btn-xs">
                                                 <span class="glyphicon glyphicon-hand-down"></span>Move Down</a>
                                                 
                                                 <a href="[% acl.edit_url %]" class="btn btn-info btn-xs" role="button" title="Edit ACL">Modify</a>
