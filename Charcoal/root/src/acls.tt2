@@ -14,8 +14,8 @@
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
-                            <div align="right">								
-								<p><a href="[% create_url %]" class="btn btn-warning btn-sm" role="button" title="New Rule"><span class="glyphicon glyphicon-plus"></span> New Rule</a>
+                            <div align="left">								
+								<p><a href="[% create_url %]" class="btn btn-success btn-sm" role="button" title="New Rule"><span class="glyphicon glyphicon-plus"></span> New Rule</a>
 								</p>
                             </div>
                             <div class="dataTable_wrapper">

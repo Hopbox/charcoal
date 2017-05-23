@@ -110,29 +110,57 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 }
 
 
-sub add :Chained('base') :PathPart('add') :Args(0) {
+sub addmember :Chained('base') :PathPart('addmember') :Args(1) {
 
-	my ( $self, $c ) = @_;
-	my $domain = $c->request->params->{domain};
+	my ( $self, $c, $category ) = @_;
+	my $domain = $c->request->parameters->{membervalue};
 	
 	$c->log->debug("ADDDOMAIN: Attempting to add domain " . $domain);
 	
-	$domain = $c->model('PgDB::CDomain')->create ({
+	my $dom = $c->model('PgDB::CDomain')->create ({
 				domain		=>	$domain,
 				customer	=>	$c->user->customer->id,
 			});
 	
-	$c->log->debug("ADDDOMAIN: Addition returned id " . $domain->id);
+	$c->log->debug("ADDDOMAIN: Addition returned id " . $dom->id);
+	
+	$dom->add_to_c_dom_cats({
+                    category => $category
+                            });
 			
-	$c->res->redirect($c->uri_for('list'));
+    $c->flash->{status_msg} = "$domain added successfully.";
+	$c->res->redirect($c->uri_for('listmembers', $category));
 	$c->detach;
 }
 
-sub listmembers :Chained('base') :PathPart('group') :Args(1) {
+sub delmember :Chained('base') :PathPart('delmember') :Args(2){
+	my ( $self, $c, $dst, $grp ) = @_;
+	
+	$c->log->debug("DELMEM: Args: " . $dst . "," . $grp);
+	
+	my $obj = $c->model('PgDB::CDomain')->find($dst);
+	my $value = $obj->domain;
+	my $rv = $obj->delete();
+	
+	if ($rv) {
+		$c->flash->{status_msg} = "Member $value deleted from group sucessfully.";
+	}
+	
+	$c->log->debug("DELMEM: RV" . $rv);
+	#$c->response->body('Matched Charcoal::Controller::Admin::SourceGroups in Admin::SourceGroups.');
+		
+	$c->res->redirect($c->uri_for('listmembers', $grp));
+	$c->detach;
+	
+}
+
+sub listmembers :Chained('base') :PathPart('listmembers') :Args(1) {
     my ($self, $c, $gid) = @_;
 
    	my $page = $c->request->params->{page};
 	$page = 1 if ( ( $page !~ /^\d+$/ ) or (!$page) );
+	
+	my $group = $c->model('PgDB::Category')->find( $gid );
 	
 	my $destinations = $c->model('PgDB::CDomain')->search({ 
 						customer => $c->user->customer->id,
@@ -146,6 +174,8 @@ sub listmembers :Chained('base') :PathPart('group') :Args(1) {
 						},
 						);
 						
+    $c->stash->{add_submit_url_dst} = $c->uri_for('addmember', $group->id);
+    $c->stash->{group} = \%{$group};
 	$c->stash->{destinations} 	= 	[ $destinations->all ];
 	$c->stash->{pager}			=	$destinations->pager;
 	$c->stash->{template} 		= 	'destinations.tt2';

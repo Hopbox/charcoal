@@ -39,40 +39,14 @@
                     <ul class="nav" id="side-menu">
                         
                         <li>
-                            <a href="#"><i class="fa fa-sitemap fa-fw"></i> ACLs<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-                                <li>
-                                    <a href="[% c.uri_for('/admin/acls/list') %]">View ACLs</a>
-                                </li>
-                                
-                               </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
+                            <a href="[% c.uri_for('/admin/acls/list') %]"><i class="fa fa-sitemap fa-fw"></i> ACLs</a>
+                            
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Sources<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-                                <li>
-                                    <a href="[% c.uri_for('/admin/sources') %]">Source</a>
-                                </li>
-                                <li>
-                                    <a href="[% c.uri_for('/admin/sourcegroups/list') %]">Source Groups</a>
-                                </li>
-                                
-                            </ul>
-                            <!-- /.nav-second-level -->
+                            <a href="[% c.uri_for('/admin/sourcegroups/list') %]"><i class="fa fa-bar-chart-o fa-fw"></i> Sources</a>
                         </li>
                         <li>
-                            <a href="#"><i class="fa fa-wrench fa-fw"></i> Destinations<span class="fa arrow"></span></a>
-                            <ul class="nav nav-second-level">
-								<li>
-									<a href="/admin/destinations/dstlist">Destinations</a>
-								</li>
-                                <li>
-                                    <a href="[% c.uri_for('/admin/destinationgroups/list') %]">Destination Groups</a>
-                                </li>
-                            </ul>
-                            <!-- /.nav-second-level -->
+                            <a href="[% c.uri_for('/admin/destinationgroups/list') %]"><i class="fa fa-wrench fa-fw"></i> Destinations</a>
                         </li>
                         
                         
