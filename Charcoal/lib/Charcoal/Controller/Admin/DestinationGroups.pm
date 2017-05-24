@@ -93,7 +93,7 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 					);
 	## Delete those objects
 	foreach my $member (@members){
-		$c->log->debug("DELCAT: Deleting member " . $member->value); 
+		$c->log->debug("DELCAT: Deleting member " . $member->domain); 
 		$member->delete();
 	}
 	## Delete the group
