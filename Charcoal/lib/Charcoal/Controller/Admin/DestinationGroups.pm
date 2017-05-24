@@ -69,7 +69,7 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 	
 	else {
 	
-        $c->flash->{error_msg} = "There was an error adding the Destinati Group $groupname.";
+        $c->flash->{error_msg} = "There was an error adding the Destination Group $groupname.";
 	
 	}
 	
@@ -100,9 +100,13 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 	
 	my $obj = $c->model('PgDB::Category')->find($grp);
 	
-	$c->log->debug("DELCAT: Deleting group " . $obj->name);
+	$c->log->debug("DELCAT: Deleting group " . $obj->category);
 	
-	$obj->delete();
+	my $rv = $obj->delete();
+	
+	if ($rv) {
+		$c->flash->{status_msg} = "Destination Group deleted sucessfully.";
+	}
 	
 	#$c->response->body('Matched Charcoal::Controller::Admin::SourceGroups in Admin::SourceGroups.');	
 	$c->res->redirect($c->uri_for('list'));
