@@ -16,7 +16,7 @@
                         <!-- /.panel-heading -->
                         <div class="panel-body">
 							<p>								
-								<button type="button" class="btn btn-success btn-sm" title="Add Destination Group" data-toggle="modal" data-target="#addGroupModal">Add Group</button>
+								<button type="button" class="btn btn-success btn-sm" title="Add Destination Group" data-toggle="modal" data-target="#addGroupModal"><span class="glyphicon glyphicon-plus"></span> Add Group</button>
 								<!-- Modal -->
 								<div id="addGroupModal" class="modal fade" role="dialog">
 									<div class="modal-dialog modal-sm">

@@ -29,27 +29,33 @@ sub base :Chained('/admin/index') :PathPart('sourcegroups') :CaptureArgs(0) {}
 sub list :Chained('base') :PathPart('list') :Args(0){
     my ( $self, $c ) = @_;
 
-	my @src_grps = $c->model('PgDB::Group')->search({ 
+    my $page = $c->request->params->{page};
+	$page = 1 if ( ( $page !~ /^\d+$/ ) or ( !$page ) );
+	
+	my $srcgroups = $c->model('PgDB::Group')->search({ 
 						customer => $c->user->customer->id 
 						},
 						{ 
+							page => $page,
+							rows => 25,
 							order_by => { -asc => 'name' } 
 						});
     
-    my @grp_arr;
+    #my @grp_arr;
     
-    foreach my $grp (@src_grps) {
-		my %grp_hash;
-		
-		$c->log->debug("SRC GRP: " . $grp->id . "," . $grp->name);
-		
-		$grp_hash{id}	= $grp->id;
-		$grp_hash{name} = $grp->name;
-		push @grp_arr, \%grp_hash;
-	}
+    #foreach my $grp (@src_grps) {
+#		my %grp_hash;
+#		
+#		$c->log->debug("SRC GRP: " . $grp->id . "," . $grp->name);
+#		
+#		$grp_hash{id}	= $grp->id;
+#		$grp_hash{name} = $grp->name;
+#		push @grp_arr, \%grp_hash;
+#	}
     
     $c->stash->{add_submit_url} = $c->uri_for('addgroup');
-    $c->stash->{grp_list} = \@grp_arr;
+    $c->stash->{grp_list} = [ $srcgroups->all ];
+    $c->stash->{pager} = $srcgroups->pager;
     $c->stash->{template} = 'sourcegroups.tt2';
     
     $c->forward( $c->view() );
@@ -78,6 +84,36 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 	my ( $self, $c, $grp ) = @_;
 	
+	my $obj = $c->model('PgDB::Group')->find($grp);
+	my $grp_name = $obj->name;
+	
+	## Find if group is being in an ACL. If yes, then show error.
+	
+	my @using_acls = $c->model('PgDB::ACL')->search( 
+                                    {
+                                      -and => [
+                                        customer => $c->user->customer->id, 
+                                        \[ q{acl::jsonb#>'{src}' \\?| array[?]}, $grp ],
+                                      ],
+                                     },   
+                                    );
+	
+	if (@using_acls) {
+        
+        $c->flash->{error_msg} = "<b>$grp_name</b> is in use. First delete it from following the following ACLs:<br/>";
+        
+        foreach my $acl (@using_acls) {
+            my $acl_name = JSON::XS->new->utf8->allow_nonref->decode($acl->acl)->{desc};
+            
+            $c->flash->{error_msg} .= "<b>* " . $acl_name . "</b><br>";
+            
+            $c->log->debug("USING ACLS: " . $acl_name);
+        }
+    
+        $c->res->redirect($c->uri_for('list'));
+        $c->detach;
+    }
+	
 	## Find all the Src objects associated with this group
 	my @members = $c->model('PgDB::Src')->search( 
 							{ 
@@ -94,8 +130,6 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 		$member->delete();
 	}
 	## Delete the group
-	
-	my $obj = $c->model('PgDB::Group')->find($grp);
 	
 	$c->log->debug("DELGRP: Deleting group " . $obj->name);
 	
@@ -123,7 +157,7 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 								join => 'src_groups',
 								order_by => [qw/ value src_type /],
 								page	=> $page,
-                                rows	=> 15,
+                                rows	=> 50,
 							}
 					);
 	

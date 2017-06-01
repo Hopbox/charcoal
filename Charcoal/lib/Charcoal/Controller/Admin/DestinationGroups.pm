@@ -35,7 +35,7 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
 						},
 						{
 							page => $page,
-							rows => 15,
+							rows => 25,
 							order_by => { -asc => 'category' }
 						},
 						);
@@ -81,6 +81,39 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 	my ( $self, $c, $grp ) = @_;
 	
+	my $obj = $c->model('PgDB::Category')->find($grp);
+	
+	my $grp_name = $obj->category;
+	
+	## Find if group is being in an ACL. If yes, then show error.
+	
+	my @using_acls = $c->model('PgDB::ACL')->search( 
+                                    {
+                                      -and => [
+                                        customer => $c->user->customer->id, 
+                                        \[ q{acl::jsonb#>'{dst}' \\?| array[?]}, $grp ],
+                                      ],
+                                     },   
+                                    );
+	
+	if (@using_acls) {
+        
+        $c->flash->{error_msg} = "<b>$grp_name</b> is in use. First delete it from following the following ACLs:<br/>";
+        
+        foreach my $acl (@using_acls) {
+            my $acl_name = JSON::XS->new->utf8->allow_nonref->decode($acl->acl)->{desc};
+            
+            $c->flash->{error_msg} .= "<b>* " . $acl_name . "</b><br>";
+            
+            $c->log->debug("USING ACLS: " . $acl_name);
+        }
+    
+        $c->res->redirect($c->uri_for('list'));
+        $c->detach;
+    
+    }
+    
+		
 	## Find all the Src objects associated with this group
 	my @members = $c->model('PgDB::CDomain')->search( 
 							{ 
@@ -97,8 +130,6 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 		$member->delete();
 	}
 	## Delete the group
-	
-	my $obj = $c->model('PgDB::Category')->find($grp);
 	
 	$c->log->debug("DELCAT: Deleting group " . $obj->category);
 	
@@ -174,7 +205,7 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1) {
                             join => 'c_dom_cats',
                             order_by => { -asc => 'domain' },
 							page	=> $page,
-							rows	=> 15,
+							rows	=> 50,
 						},
 						);
 						

@@ -39,14 +39,14 @@
                     <ul class="nav" id="side-menu">
                         
                         <li>
-                            <a href="[% c.uri_for('/admin/acls/list') %]"><i class="fa fa-sitemap fa-fw"></i> ACLs</a>
+                            <a href="[% c.uri_for('/admin/acls/list') %]"><i class="fa fa-minus fa-fw"></i> ACLs</a>
                             
                         </li>
                         <li>
-                            <a href="[% c.uri_for('/admin/sourcegroups/list') %]"><i class="fa fa-bar-chart-o fa-fw"></i> Sources</a>
+                            <a href="[% c.uri_for('/admin/sourcegroups/list') %]"><i class="fa fa-minus fa-fw"></i> Sources</a>
                         </li>
                         <li>
-                            <a href="[% c.uri_for('/admin/destinationgroups/list') %]"><i class="fa fa-wrench fa-fw"></i> Destinations</a>
+                            <a href="[% c.uri_for('/admin/destinationgroups/list') %]"><i class="fa fa-minus fa-fw"></i> Destinations</a>
                         </li>
                         
                         

@@ -15,7 +15,7 @@
                         <!-- /.panel-heading -->
                         <div class="panel-body">
                             <div align="left">								
-								<p><a href="[% create_url %]" class="btn btn-success btn-sm" role="button" title="New Rule"><span class="glyphicon glyphicon-plus"></span> New Rule</a>
+								<p><a href="[% create_url %]" class="btn btn-success btn-sm" role="button" title="New Rule"><span class="glyphicon glyphicon-plus"></span> Add Rule</a>
 								</p>
                             </div>
                             <div class="dataTable_wrapper">
@@ -33,9 +33,9 @@
                                             [% label_class = 'danger' %]
                                         [% END %]
                                         <tr class="[% label_class %]">
-                                        <td><span class="glyphicon glyphicon-chevron-down"></span></td>
+                                        <td><span class="fa fa-square"></span> <strong>[% acl.desc %]</strong></td>
                                         <td align="right">
-                                                <strong>[% acl.desc %]</strong>
+                                                
                                                 
                                                 <a href="[% acl.moveup_url %]" type="button" class="btn btn-default btn-xs">
                                                 <span class="glyphicon glyphicon-hand-up"></span>Move Up</a>

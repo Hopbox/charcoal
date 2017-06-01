@@ -16,10 +16,10 @@
                         <!-- /.panel-heading -->
                         <div class="panel-body">
 							<p>								
-								<button type="button" class="btn btn-success btn-sm" title="Add IP" data-toggle="modal" data-target="#addIpModal">Add IP</button>
-								<button type="button" disabled class="btn btn-success btn-sm" title="Add IP Range" data-toggle="modal" data-target="#addIpRangeModal">Add IP Range</button>
-								<button type="button" class="btn btn-success btn-sm" title="Add Network" data-toggle="modal" data-target="#addNetworkModal">Add Network</button>
-								<button type="button" disabled class="btn btn-success btn-sm" title="Add User" data-toggle="modal" data-target="#addUserModal">Add User</button>
+								<button type="button" class="btn btn-success btn-sm" title="Add IP" data-toggle="modal" data-target="#addIpModal"><span class="glyphicon glyphicon-plus"></span> Add IP</button>
+								<button type="button" disabled class="btn btn-success btn-sm" title="Add IP Range" data-toggle="modal" data-target="#addIpRangeModal"><span class="glyphicon glyphicon-plus"></span> Add IP Range</button>
+								<button type="button" class="btn btn-success btn-sm" title="Add Network" data-toggle="modal" data-target="#addNetworkModal"><span class="glyphicon glyphicon-plus"></span> Add Network</button>
+								<button type="button" disabled class="btn btn-success btn-sm" title="Add User" data-toggle="modal" data-target="#addUserModal"><span class="glyphicon glyphicon-plus"></span> Add User</button>
 								<!-- IP Modal -->
 								<div id="addIpModal" class="modal fade" role="dialog">
 									<div class="modal-dialog modal-sm">

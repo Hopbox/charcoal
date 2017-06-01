@@ -16,7 +16,7 @@
                         <!-- /.panel-heading -->
                         <div class="panel-body">
 							<p>								
-								<button type="button" class="btn btn-success btn-sm" title="Add Destination" data-toggle="modal" data-target="#addDestinationModal">Add Destination</button>
+								<button type="button" class="btn btn-success btn-sm" title="Add Destination" data-toggle="modal" data-target="#addDestinationModal"><span class="glyphicon glyphicon-plus"></span> Add Destination</button>
 								<!-- IP Modal -->
 								<div id="addDestinationModal" class="modal fade" role="dialog">
 									<div class="modal-dialog modal-sm">
