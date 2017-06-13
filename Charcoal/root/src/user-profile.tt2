@@ -1,0 +1,110 @@
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">User Profile</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            Change Password for <b>[% user_fname %] [% user_sname %]</b>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                        <form name="changepasswdform" role="form" action="[% submit_change_passwd %]" method="POST">
+                            <fieldset>
+                                <div class="form-group">
+                                    <label for="current_passwd">Current Password</label>
+                                    <input type="password" class="form-control" name="current_password" id="current_password" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="new_password">New Password</label>
+                                    <input type="password" class="form-control" name="new_password" id="new_password" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="new_password_re">Retype New Password</label>
+                                    <input type="password" class="form-control" name="new_password_re" id="new_password_re" required>
+                                </div>
+                                
+                                
+                                <button type="submit" id=submit class="btn btn-success">Submit</button>
+                                <button type="reset" id=reset  class="btn btn-warning" role="button" title="Reset">Reset</a>
+                                
+                            </fieldset>
+                            
+                        </form>
+                        <!-- /. form -->
+
+                        </div>
+                        <!-- /.panel-body-->
+                    </div>
+                    <!-- /. panel -->
+                </div>
+            </div>
+            <!-- /. row -->
+
+            <script type="text/javascript">
+                                       
+                                       $("#src_all").change(function() {
+                                            if( $("#src_all").is(':checked') == true ){
+                                                $("#src").val(null);
+                                                $("#src").prop('disabled', true);
+                                                $("#src").select2({});
+                                                console.log('checked');
+                                            }
+                                            else{
+                                                $("#src").prop('disabled', false);
+                                                $("#src").select2({});
+                                                console.log('unchecked');
+                                            }
+                                       });
+                                       
+                                       $("#dst_all").change(function() {
+                                            if( $("#dst_all").is(':checked') == true ){
+                                                $("#dst").val(null);
+                                                $("#dst").prop('disabled', true);
+                                                $("#dst").select2();
+                                                
+                                            }
+                                            else{
+                                                $("#dst").prop('disabled', false);
+                                                
+                                                $("#dst").select2({});
+                                                console.log('unchecked');
+                                            }
+                                       });
+                                       
+                                       $(document).ready(function() {
+                                       
+                                            if( $("#src_all").is(':checked') == true ){
+                                                
+                                                $("#src").val(null);
+                                                $("#src").prop('disabled', true);
+                                                $("#src").select2({});
+                                                console.log('checked');
+                                            }
+                                            else {
+                                                
+                                                $("#src").select2({});
+                                            }
+                                            
+                                            if( $("#dst_all").is(':checked') == true ){
+                                                $("#dst").val(null);
+                                                $("#dst").prop('disabled', true);
+                                                $("#dst").select2({});
+                                                console.log('checked');
+                                            }
+                                            else {
+                                                
+                                                $("#dst").select2({});
+                                            }
+                                       
+                                       });
+                                       
+                                       
+                                    
+            </script>

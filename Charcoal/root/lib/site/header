@@ -20,7 +20,7 @@
                         <i class="fa fa-user fa-fw"></i>[% user_fname %] [% user_sname %] <i class="fa fa-caret-down"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-user">
-                        <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        <li><a href="[% c.uri_for('/user/profile/show') %]"><i class="fa fa-user fa-fw"></i> User Profile</a>
                         </li>
                         <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
                         </li>
@@ -39,7 +39,7 @@
                     <ul class="nav" id="side-menu">
                         
                         <li>
-                            <a href="[% c.uri_for('/admin/acls/list') %]"><i class="fa fa-minus fa-fw"></i> ACLs</a>
+                            <a href="[% c.uri_for('/admin/acls/list') %]"><i class="fa fa-minus fa-fw"></i> ACL</a>
                             
                         </li>
                         <li>

@@ -23,7 +23,13 @@ Catalyst Controller.
 
 sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
-    $c->flash->{error_msg} = $c->stash->{error_msg};
+#    $c->flash->{error_msg} = $c->stash->{error_msg};
+
+    if ($c->user){
+        $c->response->redirect($c->uri_for('/admin/acls/list'));
+        $c->detach;
+    }
+    
     $c->stash->{submit_url} = $c->uri_for('auth');
     $c->stash->{template} = 'login.tt2';
 }
@@ -48,12 +54,14 @@ sub auth :Path('/login/auth') :Args(0) {
         else {
             # Set an error message
             $c->stash->{error_msg} = "Bad username or password.";
+            $c->response->redirect($c->uri_for('/login'));
+            $c->detach;
         }
     }
 
     # If either of above don't work out, send to the login page
 #    $c->stash->{template} = 'login.tt2';
-    $c->flash->{error_msg} = "Bad username or password.";
+    $c->stash->{error_msg} = "Bad username or password.";
     $c->response->redirect($c->uri_for('/login'));
     $c->detach;
    

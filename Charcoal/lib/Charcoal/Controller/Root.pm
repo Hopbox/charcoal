@@ -31,7 +31,8 @@ The root page (/)
 
 sub index : Path : Args(0){
         my ($self, $c) = @_;
-        $c->stash->{template} = 'login.tt2';
+        $c->response->redirect($c->uri_for('/login'));
+#        $c->stash->{template} = 'login.tt2';
 }
 
 =head2 auto
@@ -53,7 +54,7 @@ sub auto : Private {
     # to only allow unauthenticated access to the 'index' action we
     # added above.
     
-    
+        
     if ($c->controller eq $c->controller('Login')) {
         return 1;
     }

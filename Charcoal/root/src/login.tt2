@@ -39,21 +39,21 @@
         <div class="row">
         
         <!-- Flash Messages -->
-			[% IF status_msg %]
+		[% IF status_msg %]
 			<p>&nbsp;</p>
 			<div class="alert alert-success alert-dismissable">
 				<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
 				<p align="center">[% status_msg %]</p>
 			</div>
-			[% END %]
+		[% END %]
 			
-			[% IF error_msg %]
+		[% IF error_msg %]
 			<p>&nbsp;</p>
-            <div class="alert alert-warning alert-dismissable">
+        	        <div class="alert alert-warning alert-dismissable">
 				<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
 				<p align="center">[% error_msg %]</p>
-            </div>
-            [% END %]
+            		</div>
+            	[% END %]
             <!-- Flash Messages End --> 
             
                 <div class="login-panel panel panel-defaul">
@@ -81,6 +81,7 @@
                         </form>
                     </div>
                     <div class="panel-footer">
+			<p align="right">Trouble signing-in? <a href="/logout">Clean-up</a> and retry.</p>
                         <p align="right">Don't have an account? <a href="#">Click here</a> to get one.</p>
                     </div>
                 </div>

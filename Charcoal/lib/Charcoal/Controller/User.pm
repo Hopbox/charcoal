@@ -1,4 +1,4 @@
-package Charcoal::Controller::Admin;
+package Charcoal::Controller::User;
 use Moose;
 use namespace::autoclean;
 
@@ -6,7 +6,7 @@ BEGIN { extends 'Catalyst::Controller'; }
 
 =head1 NAME
 
-Charcoal::Controller::Admin - Catalyst Controller
+Charcoal::Controller::User - Catalyst Controller
 
 =head1 DESCRIPTION
 
@@ -21,13 +21,13 @@ Catalyst Controller.
 
 =cut
 
-sub index :Chained('/') :PathPart('admin') :CaptureArgs(0) {
+sub index :Chained('/') :PathPart('user') :CaptureArgs(0) {
     my ( $self, $c ) = @_;
 
 	$c->stash->{status_msg} = $c->flash->{status_msg} if ( exists $c->flash->{status_msg});
 	$c->stash->{error_msg} = $c->flash->{error_msg} if ( exists $c->flash->{error_msg});
 
-	# Display Admin landing page
+    # Display Admin landing page
     # Profile and customer information should be available from Root.pm
     # 
 

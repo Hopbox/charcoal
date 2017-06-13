@@ -25,7 +25,7 @@ use base 'DBIx::Class::Core';
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
+__PACKAGE__->load_components("InflateColumn::DateTime", "EncodedColumn");
 
 =head1 TABLE: C<users>
 
@@ -52,7 +52,7 @@ __PACKAGE__->table("users");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 16
+  size: 64
 
 =head2 firstname
 
@@ -90,7 +90,7 @@ __PACKAGE__->add_columns(
   "username",
   { data_type => "varchar", is_nullable => 1, size => 64 },
   "password",
-  { data_type => "varchar", is_nullable => 1, size => 16 },
+  { data_type => "varchar", is_nullable => 1, size => 64 },
   "firstname",
   { data_type => "varchar", is_nullable => 1, size => 64 },
   "lastname",
@@ -141,4 +141,16 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+__PACKAGE__->add_columns(
+	'password'	=>	{
+		data_type		=>	"varchar",
+		size			=>	undef,
+		encode_column		=>	1,
+		encode_class		=>	'Digest',
+		encode_args		=>	{algorithm => 'SHA-256', salt_length => 4},
+		encode_check_method	=>	'check_password',
+	},
+);
+
 1;
