@@ -32,7 +32,7 @@ if ($h){
 	print STDERR "Usage:\t$0 [-cdh] <api-key>\n";
 	print STDERR "\t$0 -c -d <api-key>\t: send debug messages to STDERR\n";
 	print STDERR "\t$0 -h\t\t\t: print this message\n";
-    print STDERR "\t$0 -c\t\t\t: run helper in Squid 2.x compatibility mode.\n";
+	print STDERR "\t$0 -c\t\t\t: run helper in Squid 2.x compatibility mode.\n";
 	exit 0;
 }
 
@@ -109,8 +109,8 @@ while(<>){
 	### Concurrency enabled
 		print STDERR "Concurrency Enabled\n" if $DEBUG;
 		my ($chan, $url, $clientip, $ident, $method, $blah, $proxyip, $proxyport) = split(/\s+/);
-        print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n" if $DEBUG;
-    	my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
+		print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n" if $DEBUG;
+		my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
 					PeerPort   => $charcoal_port,
 					Proto	   => $proto,
 					Timeout	   => $timeout,
@@ -118,22 +118,23 @@ while(<>){
 #					Blocking   => 1,
 				) || (print STDERR "BH message=Error connecting to charcoal server $!\n" && die);
 
-	    print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
+		print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
 
-        print $sock "$apikey|$squidver|$clientip|$ident|$method|$blah|$url\r\n";
-        my $access = <$sock>;
-        chomp $access;
+		print $sock "$apikey|$squidver|$clientip|$ident|$method|$blah|$url\r\n";
+		my $access = <$sock>;
+		chomp $access;
 		my $res = $chan . ' ' . $access;
-        $sock->close();
+		$sock->close();
 		print "$res\n";
 		print STDERR "$res\n" if $DEBUG;
 	}
+
 	else {
 	### Concurrency disabled
 		print STDERR "Concurrency Disabled\n" if $DEBUG;
 		my ($url, $clientip, $ident, $method, $blah, $proxyip, $proxyport) = split(/\s+/);
-        print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n" if $DEBUG;
-    	my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
+		print STDERR "Sending $apikey|$squidver|$clientip|$ident|$method|$blah|$url\n" if $DEBUG;
+		my $sock = IO::Socket::INET->new(PeerAddr  => $charcoal_server,
 					PeerPort   => $charcoal_port,
 					Proto	   => $proto,
 					Timeout	   => $timeout,
@@ -141,12 +142,12 @@ while(<>){
 					Blocking   => 1,
 				) || (print STDERR "BH message=Error connecting to charcoal server $!\n" && die);
 
-	    print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
-        print $sock "$apikey|$squidver|$clientip|$ident|$method|$blah|$url\r\n";
-        my $access = <$sock>;
-        chomp $access;
+		print STDERR "Connected to $charcoal_server on $proto port $charcoal_port.\n" if $DEBUG;
+		print $sock "$apikey|$squidver|$clientip|$ident|$method|$blah|$url\r\n";
+		my $access = <$sock>;
+		chomp $access;
 		my $res = $access;
-        $sock->close();
+		$sock->close();
 		print "$res\n";
 		print STDERR "$res\n" if $DEBUG;
 	}
