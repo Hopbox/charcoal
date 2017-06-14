@@ -84,11 +84,11 @@ sub process_request {
             s/\r?\n$//;
             print STDERR "MAIN: Sending for check_acl\n" if $DEBUG;
             my $allowdeny = check_acl($_);
-	        print $allowdeny;
+            print $allowdeny;
             $allowdeny = "2OK" if (!$allowdeny);# Set to 2OK for squid 2
             $memd->set($_, $allowdeny, 600) if ($CACHE != 1);# Set key-value in memcached
             print STDERR "MAIN: Returned from check_acl - allowdeny is $allowdeny " if $DEBUG;
-	        print STDERR "CACHE is $CACHE\n" if $DEBUG;
+            print STDERR "CACHE is $CACHE\n" if $DEBUG;
             $self->disconnect;
             alarm($timeout);
         }
@@ -153,14 +153,14 @@ sub check_acl {
 
     if ($cres) {
         print STDERR "FOUND in memcached: $cres\n" if $DEBUG;
-	    print STDERR "CACHE is set to: 1\n" if $DEBUG;
+        print STDERR "CACHE is set to: 1\n" if $DEBUG;
         $cres = "" if $cres eq '2OK';
-	    $CACHE = 1;
+        $CACHE = 1;
 
         return $cres;
     }
 
-	my %access_hash;
+    my %access_hash;
 
     my ($api, $squidver, $srcip, $ident, $method, $blah, $url) = split(/\|/, $msg);
 
@@ -198,8 +198,8 @@ sub check_acl {
     $sth->bind_columns(\$seq, \$result);
     while($sth->fetch()) {
         print STDERR "{$api} >>>> Got default access at seq $seq as $result\n" if $DEBUG;
-		$access_hash{$seq} = $result;
-		$def_seq = $seq;
+        $access_hash{$seq} = $result;
+        $def_seq = $seq;
     }
 
     $ACCESS = 1 if $result eq "ALLOW";
@@ -210,9 +210,9 @@ sub check_acl {
 
 
     my ($scheme, $domain, $path, $query, $frag) = uri_split($url);
-	print STDERR "{$api} URI_SPLIT: $scheme, $domain, $path, $query, $frag\n" if $DEBUG;
+    print STDERR "{$api} URI_SPLIT: $scheme, $domain, $path, $query, $frag\n" if $DEBUG;
     my $dst = $domain || $scheme;
-	my $displaydst = $dst;
+    my $displaydst = $dst;
 
     if ($dst =~ /hopbox\.in/) {
         return "OK\r\n" if $squidver == 3;
@@ -220,13 +220,13 @@ sub check_acl {
     }
 
     ### USE NetAddr::IP module - $ip->within()
-	## Get the group IDs of the SRC for CUST
-	# 1. Check all the "src" for the customer with type "ip"
-	# 2. Check all the "src" for the customer with type "iprange"
-	# 3. Check all the "src" for the customer with type "network"
-	# 4. Check all the "src" for the customer with type "user"
-	## Get the group IDs for each of the matching "src"
-	# Return
+    ## Get the group IDs of the SRC for CUST
+    # 1. Check all the "src" for the customer with type "ip"
+    # 2. Check all the "src" for the customer with type "iprange"
+    # 3. Check all the "src" for the customer with type "network"
+    # 4. Check all the "src" for the customer with type "user"
+    ## Get the group IDs for each of the matching "src"
+    # Return
 
     print STDERR "{$api} Getting src_groups for the src: $custid, $srcip, $ident\n" if $DEBUG;
 
@@ -289,90 +289,90 @@ sub check_acl {
     $srcstring =~ s/^,//;
 
     while ($dst) {
-	    print STDERR "{$api} #### Getting categories for destination $dst.\n" if $DEBUG;
+        print STDERR "{$api} #### Getting categories for destination $dst.\n" if $DEBUG;
 
-	    my $glsql = qq{ SELECT category FROM gl_dom_cat WHERE domain IN (SELECT id FROM domains WHERE domain = ?) };
-	    my $csql = qq { SELECT category FROM c_dom_cat WHERE domain IN (SELECT id FROM c_domains WHERE customer = ? and domain = ?)};
+        my $glsql = qq{ SELECT category FROM gl_dom_cat WHERE domain IN (SELECT id FROM domains WHERE domain = ?) };
+        my $csql = qq { SELECT category FROM c_dom_cat WHERE domain IN (SELECT id FROM c_domains WHERE customer = ? and domain = ?)};
 
-	    $sth = $dbh->prepare($glsql);
-	    my ($category, @categories);
-	    $sth->execute($dst);
-	    $sth->bind_columns(\$category);
-	    while ($sth->fetch()){
+        $sth = $dbh->prepare($glsql);
+        my ($category, @categories);
+        $sth->execute($dst);
+        $sth->bind_columns(\$category);
+        while ($sth->fetch()){
             print STDERR "{$api} Found global category $category for destination $dst\n" if $DEBUG;
             push @categories, $category;
         }
 
-	    $sth->finish;
+        $sth->finish;
 
-	    $sth = $dbh->prepare($csql);
-	    $sth->execute($custid, $dst);
-	    $sth->bind_columns(\$category);
-	    while ($sth->fetch()) {
+        $sth = $dbh->prepare($csql);
+        $sth->execute($custid, $dst);
+        $sth->bind_columns(\$category);
+        while ($sth->fetch()) {
             print STDERR "{$api} Found customer category $category for destination $dst\n" if $DEBUG;
             push @categories, $category;
         }
 
-	    $sth->finish;
+        $sth->finish;
 
-	    print STDERR "{$api} Categories: @categories \n" if $DEBUG;
+        print STDERR "{$api} Categories: @categories \n" if $DEBUG;
 
         # Get all the rules which have SRC -> 0 (ALL) & DST -> 0 or request DST
-	    undef $sql; undef $sth;
-	    $sql = "SELECT seq AS seq, acl::jsonb#>>'{access}' AS access from acls where \
+        undef $sql; undef $sth;
+        $sql = "SELECT seq AS seq, acl::jsonb#>>'{access}' AS access from acls where \
                 customer = ? and seq != ?";
-	                #and seq != 99999 ";
+                    #and seq != 99999 ";
 
-	    my $cat_count = $#categories + 1;
+        my $cat_count = $#categories + 1;
 
-	    print STDERR "{$api} Source Group Count: $src_grp_count Categories Count: $cat_count \n" if $DEBUG;
+        print STDERR "{$api} Source Group Count: $src_grp_count Categories Count: $cat_count \n" if $DEBUG;
 
         if (!$src_grp_count && !$cat_count) {
-			print STDERR "{$api} src & cat both are ZERO. No point in querying. NEXT\n" if $DEBUG;
-			$dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." followed by something, make it null and exit;
-        	$dst =~ s/^.*?\.(.*)/$1/; ## chop first sub-domain part from left
-        	print STDERR "{$api} >>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
-			next;
+            print STDERR "{$api} src & cat both are ZERO. No point in querying. NEXT\n" if $DEBUG;
+            $dst = "" if $dst !~ /\.(.*)$/; ## If dst doesn't contain a "." followed by something, make it null and exit;
+            $dst =~ s/^.*?\.(.*)/$1/; ## chop first sub-domain part from left
+            print STDERR "{$api} >>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
+            next;
         }
 
         $sql = $sql . " and ((acl::jsonb#>\'{src}\' \\?| array[$srcstring] ";
 
-		if ($cat_count) {
-			foreach (@categories) {
-				$_ = "\'$_\'";
-				print STDERR "{$api} Destination category $_\n" if $DEBUG;
-				$dststring = join (',', $dststring, $_);
-	        }
-		} else {
-			$dststring = "\'0\'";
-		}
+        if ($cat_count) {
+            foreach (@categories) {
+                $_ = "\'$_\'";
+                print STDERR "{$api} Destination category $_\n" if $DEBUG;
+                $dststring = join (',', $dststring, $_);
+            }
+        } else {
+            $dststring = "\'0\'";
+        }
 
-		$dststring =~ s/^,//;
+        $dststring =~ s/^,//;
 
         $sql = $sql . " and acl::jsonb#>\'{dst}\' \\?| array[$dststring] )";
-		$sql = $sql . " OR (acl::jsonb#>\'{src}\' \\?| array['0'] and acl::jsonb#>\'{dst}\' \\?| array[$dststring])";
-		$sql = $sql . " OR (acl::jsonb#>\'{src}\' \\?| array[$srcstring] and acl::jsonb#>\'{dst}\' \\?| array['0'])";
-		$sql = $sql . " ) ";
+        $sql = $sql . " OR (acl::jsonb#>\'{src}\' \\?| array['0'] and acl::jsonb#>\'{dst}\' \\?| array[$dststring])";
+        $sql = $sql . " OR (acl::jsonb#>\'{src}\' \\?| array[$srcstring] and acl::jsonb#>\'{dst}\' \\?| array['0'])";
+        $sql = $sql . " ) ";
 
-		$sql = $sql . ' order by seq asc';
+        $sql = $sql . ' order by seq asc';
 
-		print STDERR "{$api} Getting rules with srcstring $srcstring and dststring $dststring\n" if $DEBUG;
-		print STDERR "{$api} Query is: $sql\n" if $DEBUG;
+        print STDERR "{$api} Getting rules with srcstring $srcstring and dststring $dststring\n" if $DEBUG;
+        print STDERR "{$api} Query is: $sql\n" if $DEBUG;
 
-		$sth = $dbh->prepare($sql);
-		$sth->execute($custid, $def_seq);
+        $sth = $dbh->prepare($sql);
+        $sth->execute($custid, $def_seq);
 
-		my @rules;
-		undef $seq; undef $result;
-		$sth->bind_columns(\$seq, \$result);
-		while ($sth->fetch()) {
-			print STDERR "{$api} >>>> Got rule seq: $seq and access: $result\n" if $DEBUG;
-#	 		next if $seq == 99999;
+        my @rules;
+        undef $seq; undef $result;
+        $sth->bind_columns(\$seq, \$result);
+        while ($sth->fetch()) {
+            print STDERR "{$api} >>>> Got rule seq: $seq and access: $result\n" if $DEBUG;
+#           next if $seq == 99999;
             next if $seq == $def_seq;
             $access_hash{$seq} = $result;
-		}
-		$sth->finish;
-		$ACCESS = 1 if $result eq "ALLOW";
+        }
+        $sth->finish;
+        $ACCESS = 1 if $result eq "ALLOW";
         $ACCESS = 0 if $result eq "DENY";
 
         print STDERR "{$api} Access is now $ACCESS\n";
@@ -382,12 +382,12 @@ sub check_acl {
         print STDERR "{$api} >>>> Rewrote dst to $dst <<<< \n" if $DEBUG;
     }
 
-	for my $key (sort {$a<=>$b} keys %access_hash) {
-		print STDERR "{$api} ***** Seq $key: $access_hash{$key}\n" if $DEBUG;
-	}
-	my $effective_rule_key = (sort {$a<=>$b} keys %access_hash)[0];
+    for my $key (sort {$a<=>$b} keys %access_hash) {
+        print STDERR "{$api} ***** Seq $key: $access_hash{$key}\n" if $DEBUG;
+    }
+    my $effective_rule_key = (sort {$a<=>$b} keys %access_hash)[0];
 
-	$ACCESS = $access_hash{$effective_rule_key};
+    $ACCESS = $access_hash{$effective_rule_key};
 
     print STDERR "{$api} **** Access is now $ACCESS - out of WHILE DST loop\n" if $DEBUG;
 
