@@ -3,7 +3,7 @@
 
 Copyright Unmukti Technology Pvt Ltd. All rights reserved.
 
-Licensed under GNU General Public License. See LICENSE file for more details.
+Licensed under GNU Affero General Public License Version 3. See LICENSE file for more details.
 
 
 ## Why the name charcoal?
