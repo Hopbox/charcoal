@@ -27,7 +27,7 @@ use strict;
 use Cwd;
 use DBI;
 use DBD::Pg;
-die "This program requires DBD::Pg version >= 3.5.0" unless $DBD::Pg::VERSION >= 3.5.0;
+die "This program requires DBD::Pg version >= 3.6.2" unless $DBD::Pg::VERSION >= 3.6.2;
 use JSON::XS;
 use NetAddr::IP;
 use URI::Split qw(uri_split);
@@ -76,7 +76,7 @@ sub process_request {
 
     eval {
         local $SIG{'ALRM'} = sub { die "Timed Out!\n" };
-        my $timeout = 30;
+        my $timeout = 300;
 
         my $previous_alarm = alarm($timeout);
 
@@ -84,12 +84,12 @@ sub process_request {
             s/\r?\n$//;
             print STDERR "MAIN: Sending for check_acl\n" if $DEBUG;
             my $allowdeny = check_acl($_);
-            print $allowdeny;
+            print STDOUT $allowdeny . "\r\n";
             $allowdeny = "2OK" if (!$allowdeny);# Set to 2OK for squid 2
             $memd->set($_, $allowdeny, 600) if ($CACHE != 1);# Set key-value in memcached
             print STDERR "MAIN: Returned from check_acl - allowdeny is $allowdeny " if $DEBUG;
             print STDERR "CACHE is $CACHE\n" if $DEBUG;
-            $self->disconnect;
+        #    $self->disconnect;
             alarm($timeout);
         }
         alarm($previous_alarm);
@@ -188,14 +188,19 @@ sub check_acl {
 
     my $ACCESS = 0; # DEFAULT ACCESS IS TO DENY ALL
 
-    $sql = "SELECT seq AS seq, acl::jsonb#>>'{access}' AS access from \
-                acls where customer = ? and acl::jsonb#>'{src}' \\? '0' \
-                and acl::jsonb#>'{dst}' \\? '0' order by seq desc limit 1";
+    my $sql = qq {SELECT seq AS seq, acl::jsonb#>>'{access}' AS access from 
+                acls where customer = ? and acl::jsonb#>'{src}' \\? '0' 
+                and acl::jsonb#>'{dst}' \\? '0' order by seq desc limit 1} ;
+
+    print STDERR "{$api} QUERY IS: $sql\n" if $DEBUG;
     $sth = $dbh->prepare($sql);
+
     $sth->execute($custid);
 
     my ($seq, $result, $def_seq);
+
     $sth->bind_columns(\$seq, \$result);
+
     while($sth->fetch()) {
         print STDERR "{$api} >>>> Got default access at seq $seq as $result\n" if $DEBUG;
         $access_hash{$seq} = $result;
@@ -251,7 +256,6 @@ sub check_acl {
             my $sth = $dbh->prepare($sql);
             $sth->execute("$src_id");
             $sth->bind_columns(\$src_group_id);
-
             while ($sth->fetch()) {
                 print STDERR "{$api} Adding $src_group_id to src_group list for $db_src/$srcip\n" if $DEBUG;
                 push @src_grp, $src_group_id;
@@ -265,7 +269,6 @@ sub check_acl {
         $sql = qq/ SELECT src_groups.grp from src, src_groups WHERE src.customer = ? AND src.value = ? AND src_groups.member = src.id /;
         $sth = $dbh->prepare($sql);
         $sth->execute($custid, $ident);
-
         $sth->bind_columns(\$src_group_id);
         while ($sth->fetch()) {
             push @src_grp, $src_group_id;
@@ -290,7 +293,6 @@ sub check_acl {
 
     while ($dst) {
         print STDERR "{$api} #### Getting categories for destination $dst.\n" if $DEBUG;
-
         my $glsql = qq{ SELECT category FROM gl_dom_cat WHERE domain IN (SELECT id FROM domains WHERE domain = ?) };
         my $csql = qq { SELECT category FROM c_dom_cat WHERE domain IN (SELECT id FROM c_domains WHERE customer = ? and domain = ?)};
 
@@ -302,7 +304,6 @@ sub check_acl {
             print STDERR "{$api} Found global category $category for destination $dst\n" if $DEBUG;
             push @categories, $category;
         }
-
         $sth->finish;
 
         $sth = $dbh->prepare($csql);
@@ -353,7 +354,6 @@ sub check_acl {
         $sql = $sql . " OR (acl::jsonb#>\'{src}\' \\?| array['0'] and acl::jsonb#>\'{dst}\' \\?| array[$dststring])";
         $sql = $sql . " OR (acl::jsonb#>\'{src}\' \\?| array[$srcstring] and acl::jsonb#>\'{dst}\' \\?| array['0'])";
         $sql = $sql . " ) ";
-
         $sql = $sql . ' order by seq asc';
 
         print STDERR "{$api} Getting rules with srcstring $srcstring and dststring $dststring\n" if $DEBUG;
