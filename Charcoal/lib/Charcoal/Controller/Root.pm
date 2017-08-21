@@ -31,7 +31,8 @@ The root page (/)
 
 sub index : Path : Args(0){
         my ($self, $c) = @_;
-        $c->response->redirect($c->uri_for('/login'));
+#        $c->response->redirect($c->uri_for('/login'));
+         $c->response->redirect($c->uri_for('/admin/acls/list'));
 #        $c->stash->{template} = 'login.tt2';
 }
 
@@ -59,7 +60,11 @@ sub auto : Private {
         return 1;
     }
 
-    if ($c->controller eq $c->controller('Root')->action_for('index')) {
+    if ($c->action eq $c->controller('Root')->action_for('index')) {
+        return 1;
+    }
+    
+    if ($c->request->path =~ /^user\/register/) {
         return 1;
     }
 	
@@ -86,6 +91,7 @@ sub auto : Private {
     # If a user doesn't exist, force login
     if ( !$c->user_exists || !$c->session ) {
         # Dump a log message to the development server debug output
+        $c->log->debug('***CONTROLLER requested is ' . $c->controller);
         $c->log->debug('***Root::auto User/Session not found, forwarding to /login');
         # Redirect the user to the login page
         $c->response->redirect($c->uri_for('/login'));

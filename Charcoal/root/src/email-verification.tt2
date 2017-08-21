@@ -1,0 +1,17 @@
+
+Hello!
+
+We have received a New Account Registration request at https://charcoal.io
+for this email address.
+
+If you have not requested the same, please ignore and delete this mail.
+
+You need to verify the account, please click on the link below:
+
+[% verify_url %]
+
+In case of any further assistance, please write to support@hopbox.in.
+
+Thanks.
+
+Team Hopbox & Charcoal

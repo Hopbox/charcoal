@@ -27,11 +27,59 @@ sub show :Chained('base') :PathPart('show') :Args(0) {
 
     my ( $self, $c ) = @_;
 
+    my $user_obj = $c->model('PgDB::User')->find($c->user->id);
+    
+    if ($user_obj == -1){
+                $c->flash->{error_msg} = "An error occured displaying profile.";
+                $c->res->redirect($c->uri_for('/admin/acls/list'));
+                $c->detach;
+    }
+    
+    my $orgname = $user_obj->customer->name;
+    
+    $c->stash->{organisation} = $orgname;
     $c->stash->{submit_change_passwd} = $c->uri_for('change_password');
+    $c->stash->{submit_update_profile} = $c->uri_for('update_profile');
     $c->stash->{template} = 'user-profile.tt2';
-#    $c->forward;
-#    $c->detach;
-#    $c->response->body('Matched Charcoal::Controller::User::Profile in User::Profile.');
+
+}
+
+sub update_profile :Chained('base') :PathPart('update_profile') :Args(0) POST {
+    my ($self, $c) = @_;
+    
+    $c->log->debug("**** Inside Update Profile");
+    
+    my $firstname = $c->req->parameters->{first_name} || "";
+    my $lastname = $c->req->parameters->{last_name} || "";
+    my $custname = $c->req->parameters->{organisation} || "";
+    
+    my $user_obj = $c->model('PgDB::User')->find($c->user->id);
+    my $customer_obj = $user_obj->customer;
+    
+    if ( $firstname && $lastname ){
+        my $result = $user_obj->update({ firstname => $firstname, lastname => $lastname });
+        
+        if ($result == -1){
+                $c->flash->{error_msg} = "An error occured updating profile.";
+                $c->res->redirect($c->uri_for('show'));
+                $c->detach;
+        }
+        
+    }
+    
+    if ($custname){
+        my $result = $customer_obj->update({ name => $custname });
+    
+        if ($result == -1){
+                $c->flash->{error_msg} = "An error occured updating profile.";
+                $c->res->redirect($c->uri_for('show'));
+                $c->detach;
+        }
+    }
+    
+    $c->flash->{status_msg} = "Profile updated successfully.";
+       
+    $c->response->redirect($c->uri_for('show'));
 }
 
 sub change_password :Chained('base') :PathPart('change_password') :Args(0) POST {
