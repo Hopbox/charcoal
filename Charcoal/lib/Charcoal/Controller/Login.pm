@@ -53,6 +53,7 @@ sub auth :Path('/login/auth') :Args(0) {
         } 
         else {
             # Set an error message
+            $c->flash->{error_msg} = "Bad username or password.";
             $c->stash->{error_msg} = "Bad username or password.";
             $c->response->redirect($c->uri_for('/login'));
             $c->detach;
@@ -62,6 +63,7 @@ sub auth :Path('/login/auth') :Args(0) {
     # If either of above don't work out, send to the login page
 #    $c->stash->{template} = 'login.tt2';
     $c->stash->{error_msg} = "Bad username or password.";
+    $c->flash->{error_msg} = "Bad username or password.";
     $c->response->redirect($c->uri_for('/login'));
     $c->detach;
    

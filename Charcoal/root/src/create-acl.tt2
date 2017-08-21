@@ -47,7 +47,7 @@
                                 
                                 <div class="form-group">
                                     <label for="dst">Destination</label>
-                                        ]
+                                        
                                             <div class="checkbox">
                                                 <label><input type="checkbox" name="dst_all" id="dst_all">ALL</label>
                                             </div>
