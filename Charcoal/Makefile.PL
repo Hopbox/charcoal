@@ -17,6 +17,7 @@ requires 'Catalyst::Plugin::Cache::FastMmap';
 requires 'Catalyst::Plugin::Authentication';
 requires 'Catalyst::Plugin::Session::State::Cookie';
 requires 'Catalyst::Plugin::Session::Store::Memcached::Fast';
+requires 'Catalyst::View::Email::Template';
 requires 'Moose';
 requires 'namespace::autoclean';
 requires 'Config::General'; # This should reflect the config file format you've chosen
@@ -26,6 +27,10 @@ requires 'Starman';
 
 requires 'JSON::XS';
 requires 'Data::Validate::IP';
+requires 'Email::Valid';
+requires 'Net::DNS';
+requires 'Crypt::JWT';
+requires 'UUID';
 
 test_requires 'Test::More' => '0.88';
 catalyst;
