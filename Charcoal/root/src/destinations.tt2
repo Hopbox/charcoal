@@ -1,6 +1,7 @@
             <div class="row">
                 <div class="col-lg-12">
                     <h1 class="page-header">Destinations</h1>
+                    <h2>[% group.category %]</h2>
                 </div>
                 <!-- /.col-lg-12 -->
             </div>

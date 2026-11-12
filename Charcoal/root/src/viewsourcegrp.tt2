@@ -1,6 +1,7 @@
             <div class="row">
                 <div class="col-lg-12">
                     <h1 class="page-header">Modify Source Group Members</h1>
+                    <h2>[% group.name %]</h2>
                 </div>
                 <!-- /.col-lg-12 -->
             </div>
@@ -20,6 +21,7 @@
 								<button type="button" disabled class="btn btn-success btn-sm" title="Add IP Range" data-toggle="modal" data-target="#addIpRangeModal"><span class="glyphicon glyphicon-plus"></span> Add IP Range</button>
 								<button type="button" class="btn btn-success btn-sm" title="Add Network" data-toggle="modal" data-target="#addNetworkModal"><span class="glyphicon glyphicon-plus"></span> Add Network</button>
 								<button type="button" disabled class="btn btn-success btn-sm" title="Add User" data-toggle="modal" data-target="#addUserModal"><span class="glyphicon glyphicon-plus"></span> Add User</button>
+								
 								<!-- IP Modal -->
 								<div id="addIpModal" class="modal fade" role="dialog">
 									<div class="modal-dialog modal-sm">
@@ -34,13 +36,17 @@
 												<form name="addipform" role="form" action="[% add_submit_url_ip %]" method="POST">
 													<input class="form-control" id="membertype" name="membertype" value=2 type="hidden">
 													<div class="form-group">
-														<label for="membervalue">Value</label>
+														<label for="membervalue">IPv4 / IPv6 Address</label>
 														<input type="text" class="form-control" 
-														name="membervalue" id="membervalue" 
+														name="membervalue" id="membervalue"
 														data-fv-ip="true"
 														data-fv-ip-message="Please enter a valid IP address"
 														required />
 													</div>
+													<div class="form-group">
+														<label for="groupdesc">Description</label>
+														<input type="text" class="form-control" name="ipmemdesc" id="ipmemdesc" required>
+													</div>													
 													<button type="submit" class="btn btn-success" onclick="ValidateIPaddress(document.addipform.ipv4)">Submit</button>
 													<button type="reset" class="btn btn-warning">Clear</button>
 												</form>
@@ -73,6 +79,10 @@
 														<label for="endip">End IP</label>
 														<input type="text" class="form-control" name="endip" id="endip" required>
 													</div>
+													<div class="form-group">
+														<label for="groupdesc">Description</label>
+														<input type="text" class="form-control" name="iprangememdesc" id="iprangememdesc" required>
+													</div>
 													<button type="submit" class="btn btn-success" onclick="ValidateIPaddress(document.addiprange.startip)">Submit</button>
 													<button type="reset" class="btn btn-warning">Clear</button>
 												</form>
@@ -94,7 +104,7 @@
 										<div class="modal-content">
 											<div class="modal-header">
 												<button type="button" class="close" data-dismiss="modal">&times;</button>
-												<h4 class="modal-title">Add Member</h4>
+												<h4 class="modal-title">Add Subnet as Member</h4>
 											</div>
 											<div class="modal-body">
 												
@@ -134,7 +144,10 @@
 															<option value="8">8</option>
 														</select>
 													</div>
-													
+													<div class="form-group">
+														<label for="groupdesc">Description</label>
+														<input type="text" class="form-control" name="netmemdesc" id="netmemdesc" required>
+													</div>
 													<button type="submit" class="btn btn-success" onclick="ValidateIPaddress(document.addipform.ipv4)">Submit</button>
 													<button type="reset" class="btn btn-warning">Clear</button>
 											
@@ -196,6 +209,7 @@
                                         <tr>
                                             <th>Member</th>
                                             <th>Type</th>
+                                            <th>Description</th>
                                             <th>Actions</th>
                                             
                                         </tr>
@@ -206,7 +220,9 @@
                                     	<tr>
 											<td>[% member.value %]</td>
 											<td>[% member.type %]</td>
+											<td>[% member.description %]</td>
                                             <td style="width: 40%">
+												<a href="[% c.uri_for(c.controller.action_for('editmember'), [member.id, group.id]) %]" type="button" class="btn btn-info btn-sm" title="Edit this Member">Modify Member Description</a>
 												<a href="[% c.uri_for(c.controller.action_for('delmember'), [member.id, group.id]) %]" type="button" class="btn btn-danger btn-sm" title="Delete this Member">Delete</a>
                                             </td>
                                             

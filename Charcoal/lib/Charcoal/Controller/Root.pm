@@ -1,115 +1,84 @@
 package Charcoal::Controller::Root;
 use Moose;
 use namespace::autoclean;
-use Data::Dumper;
 
 BEGIN { extends 'Catalyst::Controller' }
 
-#
-# Sets the actions in this controller to be registered with no prefix
-# so they function identically to actions created in MyApp.pm
-#
 __PACKAGE__->config(namespace => '');
 
-=encoding utf-8
-
-=head1 NAME
-
-Charcoal::Controller::Root - Root Controller for Charcoal
-
-=head1 DESCRIPTION
-
-[enter your description here]
-
-=head1 METHODS
-
-=head2 index
-
-The root page (/)
-
-=cut
+# --- CORS: Allowed origins for API requests ---
+my @ALLOWED_ORIGINS = qw(
+    https://my.charcoal.io
+);
 
 sub index : Path : Args(0){
         my ($self, $c) = @_;
-#        $c->response->redirect($c->uri_for('/login'));
-         $c->response->redirect($c->uri_for('/admin/acls/list'));
-#        $c->stash->{template} = 'login.tt2';
+        $c->response->redirect($c->uri_for('/login'));
 }
-
-=head2 auto
-
-Check if there is a user and, if not, forward to login page
-
-=cut
-
-# Note that 'auto' runs after 'begin' but before your actions and that
-# 'auto's "chain" (all from application path to most specific class are run)
-# See the 'Actions' section of 'Catalyst::Manual::Intro' for more info.
 
 sub auto : Private {
     my ($self, $c) = @_;
-    # Allow unauthenticated users to reach the login page.  This
-    # allows unauthenticated users to reach any action in the Login
-    # controller.  To lock it down to a single action, we could use:
-    #   if ($c->action eq $c->controller('Login')->action_for('index'))
-    # to only allow unauthenticated access to the 'index' action we
-    # added above.
-    
-        
+
+    # --- Allow unauthenticated access to Login controller ---
     if ($c->controller eq $c->controller('Login')) {
         return 1;
     }
 
-    if ($c->action eq $c->controller('Root')->action_for('index')) {
+    if ($c->controller eq $c->controller('Root')->action_for('index')) {
         return 1;
     }
-    
-    if ($c->request->path =~ /^user\/register/) {
+
+    # --- CORS handling for API routes ---
+    if ($c->request->path =~ /^api/) {
+        my $origin = $c->req->header('Origin') // '';
+        if (grep { $_ eq $origin } @ALLOWED_ORIGINS) {
+            $c->response->headers->header('Access-Control-Allow-Origin' => $origin);
+            $c->response->headers->header('Access-Control-Allow-Credentials' => 'true');
+        }
+        $c->response->headers->header('Access-Control-Allow-Headers' => 'content-type, x-charcoal-auth, x-csrf-token');
+        $c->response->headers->header('Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS');
+
+        # Preflight requests get an early return
+        if ($c->request->method eq 'OPTIONS') {
+            return 1;
+        }
+    }
+
+    # --- Allow unauthenticated access to API Login ---
+    if ($c->controller eq $c->controller('API::Login')) {
         return 1;
     }
-	
-	if ($c->request->path =~ /^api/ ) {
-		$c->response->headers->header('Access-Control-Allow-Origin' => '*');
-		$c->response->headers->header('Access-Control-Allow-Headers' => 'content-type, x-charcoal-auth');
-		$c->response->headers->header('Access-Control-Allow-Methods' => '*');
-	} 
-	
-	if ($c->request->method eq 'OPTIONS' && $c->request->path =~ /^api/ ){
-		$c->response->headers->header('Access-Control-Allow-Origin' => '*');
-		$c->response->headers->header('Access-Control-Allow-Headers' => 'content-type, x-charcoal-auth');
-		$c->response->headers->header('Access-Control-Allow-Methods' => '*');
-		return 1;
-	}
-	
-	if ($c->controller eq $c->controller('API::Login')){
-		$c->response->headers->header('Access-Control-Allow-Origin' => '*');
-		$c->response->headers->header('Access-Control-Allow-Headers' => 'content-type, x-charcoal-auth');
-		$c->response->headers->header('Access-Control-Allow-Methods' => '*');
-		return 1;
-	}
-	
-    # If a user doesn't exist, force login
+
+    # --- Require authentication for everything else ---
     if ( !$c->user_exists || !$c->session ) {
-        # Dump a log message to the development server debug output
-        $c->log->debug('***CONTROLLER requested is ' . $c->controller);
         $c->log->debug('***Root::auto User/Session not found, forwarding to /login');
-        # Redirect the user to the login page
         $c->response->redirect($c->uri_for('/login'));
-        # Return 0 to cancel 'post-auto' processing and prevent use of application
         return 0;
     }
 
-    # User found, so return 1 to continue with processing after this 'auto'
+    # --- CSRF: Generate token if not present ---
+    if (!$c->session->{csrf_token}) {
+        my @chars = ('a'..'z', 'A'..'Z', '0'..'9');
+        $c->session->{csrf_token} = join '', map { $chars[rand @chars] } 1..32;
+    }
+    $c->stash->{csrf_token} = $c->session->{csrf_token};
+
+    # --- CSRF: Validate on state-changing requests (skip API routes) ---
+    if ($c->req->method =~ /^(POST|PUT|DELETE)$/ && $c->req->path !~ /^api/) {
+        my $token = $c->req->param('csrf_token') // $c->req->header('X-CSRF-Token') // '';
+        unless ($token eq $c->session->{csrf_token}) {
+            $c->log->warn('CSRF validation failed for ' . $c->req->path);
+            $c->res->status(403);
+            $c->res->body('Forbidden: invalid or missing CSRF token');
+            return 0;
+        }
+    }
+
+    # --- User context for templates ---
     $c->stash->{user_fname} = $c->user->firstname;
     $c->stash->{user_sname} = $c->user->lastname;
     return 1;
 }
-
-=head2 default
-
-Standard 404 error page
-
-=cut
 
 sub default :Path {
     my ( $self, $c ) = @_;
@@ -117,39 +86,14 @@ sub default :Path {
     $c->response->status(404);
 }
 
-=head2 end
+sub end : ActionClass('RenderView') {
+    my ( $self, $c ) = @_;
 
-Attempt to render a view, if needed.
-
-=cut
-
-#sub end : Private {
-#    my ( $self, $c) = @_;
-#    $c->forward( $c->view('HTML'));
-#}
-
-sub end : ActionClass('RenderView') { 
-
-	my ( $self, $c ) = @_;
-	$c->response->header('X-Frame-Options' => 'DENY');
-	#$c->response->header('Strict-Transport-Security' => 'max-age=3600');
-	$c->response->header('X-Content-Security-Policy' => "default-src 'self'");
-	$c->response->header('X-Content-Type-Options' => 'nosniff');
-	$c->response->header('X-Download-Options' => 'noopen');
-	$c->response->header('X-XSS-Protection' => "1; 'mode=block'");
-	
+    $c->response->header('X-Frame-Options' => 'DENY');
+    $c->response->header('Content-Security-Policy' => "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
+    $c->response->header('X-Content-Type-Options' => 'nosniff');
+    $c->response->header('X-Download-Options' => 'noopen');
 }
-
-=head1 AUTHOR
-
-Unmukti Technology Pvt Ltd,,,
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 

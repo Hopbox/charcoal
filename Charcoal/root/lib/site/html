@@ -8,6 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
+    [% IF csrf_token %]
+    <meta name="csrf-token" content="[% csrf_token %]">
+    [% END %]
 
     <title>Charcoal - Web Filter</title>
 
@@ -54,6 +57,24 @@
 
     [% content %]
 
+    <!-- CSRF: auto-inject token into all POST forms that lack it -->
+    <script>
+    (function() {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        if (!meta) return;
+        var token = meta.getAttribute('content');
+        var forms = document.querySelectorAll('form[method="POST"], form[method="post"]');
+        for (var i = 0; i < forms.length; i++) {
+            if (!forms[i].querySelector('input[name="csrf_token"]')) {
+                var inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'csrf_token';
+                inp.value = token;
+                forms[i].appendChild(inp);
+            }
+        }
+    })();
+    </script>
     
 </body>
 </html>

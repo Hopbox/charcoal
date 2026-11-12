@@ -21,6 +21,7 @@
                                         <tr>
                                             <th>Source</th>
                                             <th>Source Type</th>
+                                            <th>Source Description</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -30,6 +31,7 @@
                                     	<tr>
 											<td>[% src.value %]</td>
                                             <td>[% src.type %]</td>
+                                            <td>[% src.description %]</td>
                                             <td style="width:40%">
                                             <button type="button" class="btn btn-info btn-sm" title="View or Edit this Source">View / Edit Memberships</button>
                                             <button type="button" class="btn btn-danger btn-sm" title="Delete this Source">Delete</button>

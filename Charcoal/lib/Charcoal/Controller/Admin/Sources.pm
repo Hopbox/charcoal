@@ -34,6 +34,7 @@ sub index :Path :Args(0) {
 		$c->log->debug("SRC: " . $src->id . "," . $src->customer->id . ", " . $src->value . "," . $src->src_type->type);
 		$src_hash{id} = $src->id;
 		$src_hash{value} = $src->value;
+		$src_hash{description} = $src->description;
 		$src_hash{type} = uc($src->src_type->type);
 		
 		push @src_arr, \%src_hash;

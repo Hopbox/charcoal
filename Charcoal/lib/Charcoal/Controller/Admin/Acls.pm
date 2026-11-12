@@ -48,7 +48,7 @@ sub moveup :Chained('base') :PathPart('moveup') :Args(1) {
         my $oneup_seq = $oneup->seq;
         $oneup->update( {'seq' => $this_seq} );
         $this_acl->update( {'seq' => $oneup_seq} );
-        $c->flash->{status_msg} = "ACLs reordered successfully.";
+        $c->flash->{status_msg} = "ACL rules reordered successfully.";
     }
     
     $c->res->redirect($c->uri_for('list'));
@@ -78,7 +78,7 @@ sub movedown :Chained('base') :PathPart('movedown') :Args(1) {
         my $onedown_seq = $onedown->seq;
         $onedown->update( {'seq' => $this_seq} );
         $this_acl->update( {'seq' => $onedown_seq} );
-        $c->flash->{status_msg} = "ACLs reordered successfully.";
+        $c->flash->{status_msg} = "ACL rules reordered successfully.";
     }
     $c->res->redirect($c->uri_for('list'));
 	$c->detach;
@@ -94,7 +94,7 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
     my $acls = $c->model('PgDB::Acl')->search( { customer => $c->user->customer->id }, 
 														{ 
 															page	=> $page,
-															rows	=> 15,
+															rows	=> 500,
 															order_by => { -asc => 'seq' } 
 															
 														},
@@ -324,10 +324,10 @@ sub create_submit :Chained('base') :PathPart('create_submit'): Args(0){
     my $result = $c->model('PgDB::ACL')->create(\%new_acl);
     
     if ($result == -1){
-        $c->flash->{error_msg} = "ACL $acl_desc could not be created.";
+        $c->flash->{error_msg} = "ACL rule $acl_desc could not be created.";
     }
     else {
-        $c->flash->{status_msg} = "ACL $acl_desc created successfully.";
+        $c->flash->{status_msg} = "ACL rule $acl_desc created successfully.";
     }
     
     $c->res->redirect($c->uri_for('list'));
@@ -535,10 +535,10 @@ sub edit_submit :Chained('base') :PathPart('edit_submit') :Args(0){
     my $result = $acl->update(\%acl_db_json);
     
     if ($result == -1){
-        $c->flash->{error_msg} = "ACL $acl_desc could not be updated.";
+        $c->flash->{error_msg} = "ACL rule $acl_desc could not be updated.";
     }
     else {
-        $c->flash->{status_msg} = "ACL $acl_desc updated successfully.";
+        $c->flash->{status_msg} = "ACL rule $acl_desc updated successfully.";
     }
     
     
@@ -551,7 +551,15 @@ sub edit_submit :Chained('base') :PathPart('edit_submit') :Args(0){
 sub delete :Chained('base') :PathPart('delete') :Args(1){
 
 	my ($self, $c, $acl_id) = @_;
-	
+
+	# Require POST — reject GET requests
+	unless ($c->req->method eq 'POST') {
+		$c->res->status(405);
+		$c->res->body('Method not allowed');
+		$c->detach;
+		return;
+	}
+
 	# Query the object and then delete
 	my $acl = $c->model('PgDB::ACL')->find(
                                             {
@@ -559,18 +567,23 @@ sub delete :Chained('base') :PathPart('delete') :Args(1){
                                                 id       => $acl_id,
                                             },
                                         );
-                                        
+
+	unless ($acl) {
+		$c->flash->{error_msg} = "ACL rule not found.";
+		$c->res->redirect($c->uri_for('list'));
+		$c->detach;
+		return;
+	}
+
     my $result = $acl->delete;
     
     if ($result == -1){
-        $c->flash->{error_msg} = "ACL could not be deleted.";
+        $c->flash->{error_msg} = "ACL rule could not be deleted.";
     }
     else {
-        $c->flash->{status_msg} = "ACL deleted successfully.";
+        $c->flash->{status_msg} = "ACL rule deleted successfully.";
     }
     
-    
-	
 	$c->res->redirect($c->uri_for('list'));
 	$c->detach;
 }

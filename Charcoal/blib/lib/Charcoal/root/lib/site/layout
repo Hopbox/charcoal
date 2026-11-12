@@ -1,3 +1,0 @@
-[% PROCESS site/header %]
-
-[% PROCESS site/footer %]

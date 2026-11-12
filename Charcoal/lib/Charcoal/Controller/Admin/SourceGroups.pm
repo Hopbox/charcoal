@@ -37,7 +37,7 @@ sub list :Chained('base') :PathPart('list') :Args(0){
 						},
 						{ 
 							page => $page,
-							rows => 25,
+							rows => 200,
 							order_by => { -asc => 'name' } 
 						});
     
@@ -67,11 +67,13 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 	my ( $self, $c ) = @_;
 	
 	my $groupname = $c->request->params->{groupname};
+	my $groupdesc = $c->request->params->{groupdesc};
 	
 	$c->log->debug("ADDGRP: Attempting to add group " . $groupname);
 	
 	my $group = $c->model('PgDB::Group')->create ({
 				name		=>	$groupname,
+				description	=>	$groupdesc,
 				customer	=>	$c->user->customer->id,
 			});
 	
@@ -80,6 +82,41 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 	$c->res->redirect($c->uri_for('list'));
 	$c->detach;
 }
+
+sub editgroup :Chained('base') :PathPart('editgroup') :Args(1) {
+	my ( $self, $c, $grp) = @_;
+	
+	my $group = $c->model('PgDB::Group')->find ({ customer => $c->user->customer->id, id => $grp});
+	
+	$c->stash->{group}		= \%{$group};
+	$c->stash->{template}	= 'edit-group.tt2';
+	
+	$c->forward( $c->view() );
+	
+}
+
+sub editgroup_submit :Chained('base') :PathPart('editgroup_submit') :Args(1) {
+	my ( $self, $c, $grp) = @_;
+	
+	my $groupname = $c->request->params->{groupname};
+	my $groupdesc = $c->request->params->{groupdesc};
+	
+	my $group = $c->model('PgDB::Group')->find ({ customer => $c->user->customer->id, id => $grp});
+	
+	if ($group) {
+		$group->update({ name => $groupname, description => $groupdesc });
+		$c->flash->{status_msg} = "Group details updated successfully.";
+	}
+	else {
+		$c->log->debug("EDITGROUPSUBMIT: Group " . $grp . " not found.");
+		$c->flash->{error_msg} = "Group not edited. Object not found: $grp.";
+	}
+	
+	$c->res->redirect($c->uri_for('list'));
+	$c->detach;
+	
+}
+
 
 sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 	my ( $self, $c, $grp ) = @_;
@@ -157,7 +194,7 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 								join => 'src_groups',
 								order_by => [qw/ value src_type /],
 								page	=> $page,
-                                rows	=> 50,
+                                rows	=> 500,
 							}
 					);
 	
@@ -168,6 +205,7 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 		$c->log->debug("SRC: " . $grp_id . "," . $member->id . "," . $member->customer->id . ", " . $member->value . "," . $member->src_type->type);
 		$member_hash{id} 	= $member->id;
 		$member_hash{value} = $member->value;
+		$member_hash{description} = $member->description;
 		$member_hash{type} 	= uc($member->src_type->type);
 		
 		push @member_arr, \%member_hash;
@@ -179,7 +217,7 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 	$c->stash->{add_submit_url_user} = $c->uri_for('addmemberuser', $grp_id);
 	$c->stash->{group}			= \%{$group};
 	$c->stash->{member_list} 	= \@member_arr;
-	$c->stash->{pager}			=	$members->pager;
+	$c->stash->{pager}			= $members->pager;
 	$c->stash->{template} 		= 'viewsourcegrp.tt2';
 	
 	$c->forward( $c->view() );
@@ -193,6 +231,7 @@ sub addmembernet :Chained('base') :PathPart('addmembernet') :Args(1){
 	my $type = 4;
 	my $network = $c->request->params->{network} || "";
 	my $prefix  = $c->request->params->{prefix} || "";
+	my $description = $c->request->params->{netmemdesc} || "";
 	
 	my $value = $network . "/" . $prefix;
 	
@@ -207,6 +246,7 @@ sub addmembernet :Chained('base') :PathPart('addmembernet') :Args(1){
 		my $src = $c->model('PgDB::Src')->create ({
 						value		=>	$value,
 						src_type	=>	$type,
+						description =>  $description,
 						customer	=>	$c->user->customer->id
 					});
 					
@@ -235,12 +275,56 @@ sub addmembernet :Chained('base') :PathPart('addmembernet') :Args(1){
 
 }
 
+sub editmember :Chained('base') :PathPart('editmember') :Args(2){
+	my ($self, $c, $src, $grp) = @_;
+	
+	$c->log->debug("EDITMEM: Args: " . $src . "," . $grp);
+	
+	my $group = $c->model('PgDB::Group')->find( {customer => $c->user->customer->id, id => $grp} );
+	my $member = $c->model('PgDB::Src')->find( {customer => $c->user->customer->id, id => $src} );
+	my $type = $member->src_type->type;
+	
+	if ( $type == "ip" ) {
+		$c->log->debug("EDITMEM: Type:" . $type );
+		my $value = $c->request->params->{editmemvalue} || "";
+		my $description = $c->request->params->{editmemdesc} || "";
+	}
+	
+	$c->stash->{type}			= $type;
+	$c->stash->{member}			= \%{$member};
+	$c->stash->{group}			= \%{$group};
+	$c->stash->{template} 		= 'edit-src-member.tt2';
+	
+	$c->forward( $c->view() );
+}
+
+sub editmember_submit :Chained('base') :PathPart('editmember_submit') :Args(2){
+	my ($self, $c, $src, $grp) = @_;
+
+	my $value = $c->request->params->{value};
+	my $description = $c->request->params->{desc};
+	
+	my $member = $c->model('PgDB::Src')->find( { customer =>	$c->user->customer->id, id=>  $src});
+	
+	if ($member) {
+		$c->log->debug("EDITMEMSUBMIT: Member found " . $member->value);
+		$member->update( { description => $description } );
+		$c->flash->{status_msg} = "Member updated successfully.";
+	}
+	else {
+		$c->flash->{status_msg} = "Member with ID $src not found.";
+	}
+	
+	$c->res->redirect($c->uri_for('listmembers', $grp));
+	$c->detach;
+}
 
 sub addmemberip :Chained('base') :PathPart('addmemberip') :Args(1){
 	my ($self, $c, $grp ) = @_;
 	
 	my $type = $c->request->params->{membertype} || "";
 	my $value = $c->request->params->{membervalue} || "";
+	my $description = $c->request->params->{ipmemdesc} || "";
 	
 	
 	## Check if value is a valid IP
@@ -251,6 +335,7 @@ sub addmemberip :Chained('base') :PathPart('addmemberip') :Args(1){
 		my $src = $c->model('PgDB::Src')->create ({
 						value		=>	$value,
 						src_type	=>	$type,
+						description	=>	$description,
 						customer	=>	$c->user->customer->id
 					});
 					
@@ -282,7 +367,7 @@ sub delmember :Chained('base') :PathPart('delmember') :Args(2){
 	
 	$c->log->debug("DELMEM: Args: " . $src . "," . $grp);
 	
-	my $obj = $c->model('PgDB::Src')->find($src);
+	my $obj = $c->model('PgDB::Src')->find({ customer => $c->user->customer->id, id => $src });
 	my $value = $obj->value;
 	my $rv = $obj->delete();
 	

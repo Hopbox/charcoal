@@ -32,7 +32,11 @@
 													
 													<div class="form-group">
 														<label for="groupname">Group Name</label>
-														<input type="text" class="form-control" name="groupname" id="groupname" required>
+														<input type="text" class="form-control" name="groupname" id="groupname" required maxlength=64>
+													</div>
+													<div class="form-group">
+														<label for="groupdesc">Description</label>
+														<input type="text" class="form-control" name="groupdesc" id="groupdesc" required maxlength=128>
 													</div>
 													<button type="submit" class="btn btn-success">Submit</button>
 													<button type="reset" class="btn btn-warning">Clear</button>
@@ -51,6 +55,7 @@
                                     <thead>
                                         <tr>
                                             <th>Group Name</th>
+                                            <th>Group Description</th>
                                             <th>Actions</th>
                                             
                                         </tr>
@@ -60,10 +65,12 @@
                                     [% FOREACH grp IN grp_list %]
                                     	<tr>
 											<td>[% grp.name %]</td>
+											<td>[% grp.description %]</td>
                                             <td style="width: 40%">
                                             <a href="[% c.uri_for(c.controller.action_for('listmembers'), [grp.id]) %]" class="btn btn-info btn-sm" role="button" title="View / Edit Members of this Group">View / Modify Members</a>
-												
-												
+											
+											<a href="[% c.uri_for(c.controller.action_for('editgroup'), [grp.id]) %]" class="btn btn-primary btn-sm" role="button" title="Modify Name and Description of this Group">Modify Group</a>
+											
                                             <a href="[% c.uri_for(c.controller.action_for('delgroup'), [grp.id]) %]" type="button" class="btn btn-danger btn-sm" title="Delete this Group">Delete Group</a>
                                             </td>
                                             

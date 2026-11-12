@@ -58,7 +58,7 @@
             
                 <div class="login-panel panel panel-defaul">
                     <div class="panel-heading">
-                        Please Login to begin...
+			Please Login to begin...
                     </div>
                     <div class="panel-body">
                         <form role="form" action="[% submit_url %]" method="post">
@@ -81,8 +81,8 @@
                         </form>
                     </div>
                     <div class="panel-footer">
-                        <p align="right">Trouble signing-in? <a href="mailto:support@hopbox.in?subject=Login issue">Write to us</a>.</p>
-                        <p align="right">Don't have an account? <a href="/user/register/welcome">Click here</a> to get one.</p>
+			<p align="right">Trouble signing-in? <a href="/logout">Clean-up</a> and retry.</p>
+                        <p align="right">Don't have an account? <a href="http://charcoal.io/#contact">Click here</a> to get one.</p>
                     </div>
                 </div>
         </div>

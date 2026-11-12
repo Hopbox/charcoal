@@ -1,0 +1,45 @@
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Edit Group</h1>
+                    <h2>[% group.name %]</h2>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                        <p>Here you can modify the name and description of the group <b>[% group.name %].</b>
+						</p>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                        <form name="editgroupform" role="form" action="[% c.uri_for(c.controller.action_for('editgroup_submit'), [group.id]) %]" method="POST">
+                            <fieldset>
+                                <div class="form-group">
+                                    <label for="desc">Name</label>
+                                    <input type="text" class="form-control" name="groupname" id="groupname" required value="[% group.name %]">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="desc">Description</label>
+                                    <input type="text" class="form-control" name="groupdesc" id="groupdesc" maxlength="64" required value="[% group.description %]">
+                                </div>
+                                
+                                <input type="hidden" class="form-control" name="id" id="id" value="[% group.id %]">
+                                <button type="submit" id=submit class="btn btn-success">Submit</button>
+                                <a href="[% c.uri_for(c.controller.action_for('editgroup'), [group.id]) %]" class="btn btn-warning" role="button" title="Reset">Reset</a>
+                                
+                            </fieldset>
+                            
+                        </form>
+                        <!-- /. form -->
+
+                        </div>
+                        <!-- /.panel-body-->
+                    </div>
+                    <!-- /. panel -->
+                </div>
+            </div>
+            <!-- /. row -->

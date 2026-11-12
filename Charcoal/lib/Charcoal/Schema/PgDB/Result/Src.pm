@@ -21,15 +21,11 @@ use base 'DBIx::Class::Core';
 
 =item * L<DBIx::Class::InflateColumn::DateTime>
 
-=item * L<DBIx::Class::TimeStamp>
-
-=item * L<DBIx::Class::EncodedColumn>
-
 =back
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "TimeStamp", "EncodedColumn");
+__PACKAGE__->load_components("InflateColumn::DateTime");
 
 =head1 TABLE: C<src>
 
@@ -63,6 +59,11 @@ __PACKAGE__->table("src");
   is_foreign_key: 1
   is_nullable: 1
 
+=head2 value
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -79,6 +80,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "customer",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "description",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -151,8 +154,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07047 @ 2017-08-09 13:24:12
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kHs5rCx37hYgUTZQaYQuXQ
+# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-07-21 19:13:27
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bIk0Ru8CoA8JHBCisCKbPg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

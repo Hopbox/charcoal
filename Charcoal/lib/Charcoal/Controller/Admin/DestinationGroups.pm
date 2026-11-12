@@ -35,7 +35,7 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
 						},
 						{
 							page => $page,
-							rows => 25,
+							rows => 200,
 							order_by => { -asc => 'category' }
 						},
 						);
@@ -205,7 +205,7 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1) {
                             join => 'c_dom_cats',
                             order_by => { -asc => 'domain' },
 							page	=> $page,
-							rows	=> 50,
+							rows	=> 500,
 						},
 						);
 						
@@ -232,7 +232,7 @@ sub list_grp :Chained('base') :PathPart('groups/list') :Args(0) {
 						},
 						{
 							page => $page,
-							rows => 15,
+							rows => 200,
 							order_by => { -asc => 'category' }
 						},
 						);

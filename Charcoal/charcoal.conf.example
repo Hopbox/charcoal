@@ -1,0 +1,59 @@
+# rename this file to charcoal.yml and put a ':' after 'name' if
+# you want to use YAML like in old versions of Catalyst
+name Charcoal
+
+default_view HTML
+
+<Model::PgDB>
+    connect_info    dbi:Pg:dbname=charcoaldb;host=127.0.0.1;port=5432
+    connect_info    charcoal_user_
+    connect_info    charcoal_pass_
+    <connect_info>
+        AutoCommit 1
+    </connect_info>
+</Model::PgDB>
+
+<View::JSON>
+    expose_stash = json
+</View::JSON>
+
+<Plugin::Authentication>
+    <default>
+
+        <credential>
+            password_type   self_check
+#            password_field  password
+#            class           Password
+        </credential>
+
+        <store>
+            class       DBIx::Class
+            user_model  PgDB::User
+        </store>
+
+    </default>
+</Plugin::Authentication>
+
+<Plugin::Cache>
+    <backend>
+        class Cache::FastMmap
+        unlink_on_exit 1
+        share_file /tmp/charcoal_share
+    </backend>
+</Plugin::Cache>
+
+<Plugin::Session::Store::Memcached::Fast>
+    <session>
+        expires 3600
+        servers ['127.0.0.1:11211']
+    </session>
+</Plugin::Session::Store::Memcached::Fast>
+
+<Plugin::Session>
+	auth_header	X-Charcoal-Auth
+	allowed_uri	^/api/
+</Plugin::Session>
+
+<Plugin::Static::Simple>
+    dirs ['static']
+</Plugin::Static::Simple>
