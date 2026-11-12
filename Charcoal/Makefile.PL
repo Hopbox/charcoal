@@ -9,7 +9,7 @@ use Module::Install::Catalyst; # Complain loudly if you don't have
 name 'Charcoal';
 all_from 'lib/Charcoal.pm';
 
-requires 'Catalyst::Runtime' => '5.90079';
+requires 'Catalyst::Runtime'; # => '5.90079';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::Static::Simple';
 requires 'Catalyst::Action::RenderView';
@@ -17,6 +17,15 @@ requires 'Catalyst::Plugin::Cache::FastMmap';
 requires 'Catalyst::Plugin::Authentication';
 requires 'Catalyst::Plugin::Session::State::Cookie';
 requires 'Catalyst::Plugin::Session::Store::Memcached::Fast';
+requires 'Catalyst::Plugin::Session::Store::FastMmap';
+requires 'Catalyst::Plugin::Session::State::Header';
+requires 'Catalyst::View::Email::Template';
+requires 'Catalyst::View::TT';
+requires 'Catalyst::View::JSON';
+requires 'Catalyst::Controller::REST';
+requires 'Catalyst::Authentication::Store::DBIx::Class';
+requires 'Catalyst::Restarter';
+requires 'Catalyst::Plugin::StatusMessage';
 requires 'Moose';
 requires 'namespace::autoclean';
 requires 'Config::General'; # This should reflect the config file format you've chosen
@@ -24,14 +33,16 @@ requires 'Config::General'; # This should reflect the config file format you've 
 requires 'Plack';
 requires 'Starman';
 
-requires 'DBD::Pg';
+requires 'DBIx::Class::TimeStamp';
 requires 'DBIx::Class::EncodedColumn';
-
 requires 'JSON::XS';
 requires 'Data::Validate::IP';
+requires 'Email::Valid';
+requires 'Net::DNS';
+requires 'Crypt::JWT';
 requires 'UUID';
 
-test_requires 'Test::More' => '0.88';
+test_requires 'Test::More';# => '0.88';
 catalyst;
 
 install_script glob('script/*.pl');

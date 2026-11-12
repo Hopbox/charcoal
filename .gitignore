@@ -1,5 +1,7 @@
 charcoal-db.sql
 full_dump.gz
-Charcoal/charcoal.conf
 *.conf
-Charcoal/blib
+Charcoal/blib/
+Charcoal/Makefile
+Charcoal/MYMETA.*
+Charcoal/pm_to_blib
