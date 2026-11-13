@@ -13,7 +13,7 @@
    # define a data structure to hold sitewide data
    site = {
      title     => 'Hopbox Charcoal',
-     copyright => '2010-2024 Unmukti Technology Pvt Ltd',
+     copyright => '2010-2026 Unmukti Technology Pvt Ltd',
    };
 
    # load up any other configuration items
