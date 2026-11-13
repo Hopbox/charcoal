@@ -13,6 +13,9 @@ __PACKAGE__->config({
     ERROR        => 'error.tt2',
     TIMER        => 0,
     render_die   => 1,
+    # Escape every [% var %] with the 'html' filter by default.
+    # Output that is already HTML must say so: [% content | none %].
+    CLASS        => 'Template::AutoFilter',
 });
 
 =head1 NAME

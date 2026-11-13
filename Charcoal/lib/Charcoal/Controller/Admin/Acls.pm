@@ -36,6 +36,14 @@ sub _acl_input_error {
 
     return "Invalid access value." unless defined $access && $access =~ /^(ALLOW|DENY)$/;
 
+    # Nothing selected must not become "any". Without this check a rule
+    # with only a name is saved as ANY -> ANY at the top of the list.
+    my $p = $c->req->params;
+    return "Select at least one source group, or ALL."
+        unless $p->{src_all} || (defined $p->{src} && $p->{src} ne '');
+    return "Select at least one destination group, or ALL."
+        unless $p->{dst_all} || (defined $p->{dst} && $p->{dst} ne '');
+
     my %s = map { $_ => 1 } grep { $_ ne '0' } @$src;
     my %d = map { $_ => 1 } grep { $_ ne '0' } @$dst;
     return "Invalid source or destination group."
@@ -402,7 +410,6 @@ sub edit :Chained('base') :PathPart('edit') :Args(1){
 	$c->detach('/default') unless $acl;
 	
 	# get ACL, all the src, dst with selected ones chosen
-    my ($acl_seq, $acl_acl, $acl_id);
 
     my (@acl_arr);
 	

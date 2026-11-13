@@ -143,12 +143,12 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 	
 	if (@using_acls) {
         
-        $c->flash->{error_msg} = "<b>$grp_name</b> is in use. First delete it from following the following ACLs:<br/>";
+        $c->flash->{error_msg} = "$grp_name is in use. First remove it from these ACLs:";
         
         foreach my $acl (@using_acls) {
             my $acl_name = JSON::XS->new->utf8->allow_nonref->decode($acl->acl)->{desc};
             
-            $c->flash->{error_msg} .= "<b>* " . $acl_name . "</b><br>";
+            $c->flash->{error_msg} .= " [" . $acl_name . "]";
             
             $c->log->debug("USING ACLS: " . $acl_name);
         }

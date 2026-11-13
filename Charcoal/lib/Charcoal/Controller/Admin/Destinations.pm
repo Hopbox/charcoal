@@ -30,12 +30,12 @@ sub adddomain :Chained('/') :PathPart('adddomain') :Args(0) {
 	
 	$c->log->debug("ADDDOMAIN: Attempting to add domain " . $domain);
 	
-	my $domain = $c->model('PgDB::CDomain')->create ({
+	my $row = $c->model('PgDB::CDomain')->create ({
 				domain		=>	$domain,
 				customer	=>	$c->user->customer->id,
 			});
 	
-	$c->log->debug("ADDDOMAIN: Addition returned id " . $domain->id);
+	$c->log->debug("ADDDOMAIN: Addition returned id " . $row->id);
 			
 	$c->res->redirect($c->uri_for('list'));
 	$c->detach;

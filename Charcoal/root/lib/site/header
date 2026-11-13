@@ -78,7 +78,7 @@
             [% END %]
             <!-- Flash Messages End --> 
             
-            [% content %]
+            [% content | none %]
         </div>
         <!-- /#page-wrapper -->
 

@@ -49,7 +49,7 @@
 
 <body>
 
-    [% content %]
+    [% content | none %]
 
     <!-- CSRF: auto-inject token into all POST forms that lack it -->
     <script>
