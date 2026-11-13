@@ -86,7 +86,8 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 sub editgroup :Chained('base') :PathPart('editgroup') :Args(1) {
 	my ( $self, $c, $grp) = @_;
 	
-	my $group = $c->model('PgDB::Group')->find ({ customer => $c->user->customer->id, id => $grp});
+	my $group = $c->owned_row('PgDB::Group', $grp);
+	$c->detach('/default') unless $group;
 	
 	$c->stash->{group}		= \%{$group};
 	$c->stash->{template}	= 'edit-group.tt2';
@@ -101,7 +102,7 @@ sub editgroup_submit :Chained('base') :PathPart('editgroup_submit') :Args(1) {
 	my $groupname = $c->request->params->{groupname};
 	my $groupdesc = $c->request->params->{groupdesc};
 	
-	my $group = $c->model('PgDB::Group')->find ({ customer => $c->user->customer->id, id => $grp});
+	my $group = $c->owned_row('PgDB::Group', $grp);
 	
 	if ($group) {
 		$group->update({ name => $groupname, description => $groupdesc });
@@ -121,7 +122,12 @@ sub editgroup_submit :Chained('base') :PathPart('editgroup_submit') :Args(1) {
 sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 	my ( $self, $c, $grp ) = @_;
 	
-	my $obj = $c->model('PgDB::Group')->find($grp);
+	my $obj = $c->owned_row('PgDB::Group', $grp);
+	unless ($obj) {
+		$c->flash->{error_msg} = "Group not found.";
+		$c->res->redirect($c->uri_for('list'));
+		$c->detach;
+	}
 	my $grp_name = $obj->name;
 	
 	## Find if group is being in an ACL. If yes, then show error.
@@ -183,7 +189,8 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
    	my $page = $c->request->params->{page};
 	$page = 1 if ( ( $page !~ /^\d+$/ ) or (!$page) );
 	
-	my $group = $c->model('PgDB::Group')->find( $grp_id );
+	my $group = $c->owned_row('PgDB::Group', $grp_id);
+	$c->detach('/default') unless $group;
 	
 	my $members = $c->model('PgDB::Src')->search( 
 							{ 
@@ -227,6 +234,12 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 
 sub addmembernet :Chained('base') :PathPart('addmembernet') :Args(1){
 	my ($self, $c, $grp ) = @_;
+
+	unless ($c->owned_row('PgDB::Group', $grp)) {
+		$c->flash->{error_msg} = "Group not found.";
+		$c->res->redirect($c->uri_for('list'));
+		$c->detach;
+	}
 	
 	my $type = 4;
 	my $network = $c->request->params->{network} || "";
@@ -280,8 +293,9 @@ sub editmember :Chained('base') :PathPart('editmember') :Args(2){
 	
 	$c->log->debug("EDITMEM: Args: " . $src . "," . $grp);
 	
-	my $group = $c->model('PgDB::Group')->find( {customer => $c->user->customer->id, id => $grp} );
-	my $member = $c->model('PgDB::Src')->find( {customer => $c->user->customer->id, id => $src} );
+	my $group = $c->owned_row('PgDB::Group', $grp);
+	my $member = $c->owned_row('PgDB::Src', $src);
+	$c->detach('/default') unless $group && $member;
 	my $type = $member->src_type->type;
 	
 	if ( $type == "ip" ) {
@@ -304,7 +318,7 @@ sub editmember_submit :Chained('base') :PathPart('editmember_submit') :Args(2){
 	my $value = $c->request->params->{value};
 	my $description = $c->request->params->{desc};
 	
-	my $member = $c->model('PgDB::Src')->find( { customer =>	$c->user->customer->id, id=>  $src});
+	my $member = $c->owned_row('PgDB::Src', $src);
 	
 	if ($member) {
 		$c->log->debug("EDITMEMSUBMIT: Member found " . $member->value);
@@ -321,6 +335,12 @@ sub editmember_submit :Chained('base') :PathPart('editmember_submit') :Args(2){
 
 sub addmemberip :Chained('base') :PathPart('addmemberip') :Args(1){
 	my ($self, $c, $grp ) = @_;
+
+	unless ($c->owned_row('PgDB::Group', $grp)) {
+		$c->flash->{error_msg} = "Group not found.";
+		$c->res->redirect($c->uri_for('list'));
+		$c->detach;
+	}
 	
 	my $type = $c->request->params->{membertype} || "";
 	my $value = $c->request->params->{membervalue} || "";
@@ -367,7 +387,12 @@ sub delmember :Chained('base') :PathPart('delmember') :Args(2){
 	
 	$c->log->debug("DELMEM: Args: " . $src . "," . $grp);
 	
-	my $obj = $c->model('PgDB::Src')->find({ customer => $c->user->customer->id, id => $src });
+	my $obj = $c->owned_row('PgDB::Src', $src);
+	unless ($obj) {
+		$c->flash->{error_msg} = "Member not found.";
+		$c->res->redirect($c->uri_for('listmembers', $grp));
+		$c->detach;
+	}
 	my $value = $obj->value;
 	my $rv = $obj->delete();
 	

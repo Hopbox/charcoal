@@ -31,7 +31,12 @@ sub moveup :Chained('base') :PathPart('moveup') :Args(1) {
 
     ## Find the rule above this and swap SEQ
     
-    my $this_acl = $c->model('PgDB::ACL')->find( {customer => $c->user->customer->id, id => $acl_id });
+    my $this_acl = $c->owned_row('PgDB::ACL', $acl_id);
+    unless ($this_acl) {
+        $c->flash->{error_msg} = "ACL rule not found.";
+        $c->res->redirect($c->uri_for('list'));
+        $c->detach;
+    }
     my $this_seq = $this_acl->seq;
     
     my $oneup = $c->model('PgDB::ACL')->search( { customer => $c->user->customer->id,
@@ -61,7 +66,12 @@ sub movedown :Chained('base') :PathPart('movedown') :Args(1) {
 
     ## Find the rule below this and swap SEQ
     
-    my $this_acl = $c->model('PgDB::ACL')->find( {customer => $c->user->customer->id, id => $acl_id });
+    my $this_acl = $c->owned_row('PgDB::ACL', $acl_id);
+    unless ($this_acl) {
+        $c->flash->{error_msg} = "ACL rule not found.";
+        $c->res->redirect($c->uri_for('list'));
+        $c->detach;
+    }
     my $this_seq = $this_acl->seq;
     
     my $onedown = $c->model('PgDB::ACL')->search( { customer => $c->user->customer->id,
@@ -343,12 +353,8 @@ sub edit :Chained('base') :PathPart('edit') :Args(1){
 	$c->log->debug("EDIT ACL: acl_id = " . $acl_id . " CUST ID: " . $cust_id);
 	
 	# Populate the ACL hash to show
-	my $acl = $c->model('PgDB::ACL')->find(
-                                            {
-                                                customer => $c->user->customer->id,
-                                                id       => $acl_id,
-                                            },
-                                        );
+	my $acl = $c->owned_row('PgDB::ACL', $acl_id);
+	$c->detach('/default') unless $acl;
 	
 	# get ACL, all the src, dst with selected ones chosen
     my ($acl_seq, $acl_acl, $acl_id);
@@ -512,13 +518,13 @@ sub edit_submit :Chained('base') :PathPart('edit_submit') :Args(0){
 #	$c->log->debug("EDIT-SUBMIT ACL: src = " . @$acl_src .  $acl_src_all . " dst = " . @$acl_dst . $acl_dst_all);
 	
 	# Populate the ACL hash to show
-	my $acl = $c->model('PgDB::ACL')->find(
-                                            {
-                                                customer => $c->user->customer->id,
-                                                id       => $acl_id,
-                                            },
-                                        );
-                                        
+	my $acl = $c->owned_row('PgDB::ACL', $acl_id);
+	unless ($acl) {
+		$c->flash->{error_msg} = "ACL rule not found.";
+		$c->res->redirect($c->uri_for('list'));
+		$c->detach;
+	}
+
     my %for_acl;
     
     $for_acl{src} = \@acl_src;
@@ -561,12 +567,7 @@ sub delete :Chained('base') :PathPart('delete') :Args(1){
 	}
 
 	# Query the object and then delete
-	my $acl = $c->model('PgDB::ACL')->find(
-                                            {
-                                                customer => $c->user->customer->id,
-                                                id       => $acl_id,
-                                            },
-                                        );
+	my $acl = $c->owned_row('PgDB::ACL', $acl_id);
 
 	unless ($acl) {
 		$c->flash->{error_msg} = "ACL rule not found.";

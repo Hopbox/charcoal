@@ -81,7 +81,12 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 	my ( $self, $c, $grp ) = @_;
 	
-	my $obj = $c->model('PgDB::Category')->find($grp);
+	my $obj = $c->owned_row('PgDB::Category', $grp);
+	unless ($obj) {
+		$c->flash->{error_msg} = "Destination group not found.";
+		$c->res->redirect($c->uri_for('list'));
+		$c->detach;
+	}
 	
 	my $grp_name = $obj->category;
 	
@@ -148,6 +153,12 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 sub addmember :Chained('base') :PathPart('addmember') :Args(1) {
 
 	my ( $self, $c, $category ) = @_;
+
+	unless ($c->owned_row('PgDB::Category', $category)) {
+		$c->flash->{error_msg} = "Destination group not found.";
+		$c->res->redirect($c->uri_for('list'));
+		$c->detach;
+	}
 	my $domain = $c->request->parameters->{membervalue};
 	
 	$c->log->debug("ADDDOMAIN: Attempting to add domain " . $domain);
@@ -173,7 +184,12 @@ sub delmember :Chained('base') :PathPart('delmember') :Args(2){
 	
 	$c->log->debug("DELMEM: Args: " . $dst . "," . $grp);
 	
-	my $obj = $c->model('PgDB::CDomain')->find($dst);
+	my $obj = $c->owned_row('PgDB::CDomain', $dst);
+	unless ($obj) {
+		$c->flash->{error_msg} = "Domain not found.";
+		$c->res->redirect($c->uri_for('listmembers', $grp));
+		$c->detach;
+	}
 	my $value = $obj->domain;
 	my $rv = $obj->delete();
 	
@@ -195,7 +211,8 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1) {
    	my $page = $c->request->params->{page};
 	$page = 1 if ( ( $page !~ /^\d+$/ ) or (!$page) );
 	
-	my $group = $c->model('PgDB::Category')->find( $gid );
+	my $group = $c->owned_row('PgDB::Category', $gid);
+	$c->detach('/default') unless $group;
 	
 	my $destinations = $c->model('PgDB::CDomain')->search({ 
 						customer => $c->user->customer->id,

@@ -57,6 +57,22 @@ __PACKAGE__->config(
     enable_catalyst_header => 1, # Send X-Catalyst header
 );
 
+# Return the row of $source with primary key $id ONLY if it belongs to the
+# logged-in customer. Otherwise return undef.
+#
+# Do NOT use find({ customer => ..., id => ... }) for this. DBIx::Class find()
+# keeps only the columns of a unique constraint (the primary key) and drops
+# 'customer' without a warning. The query becomes "WHERE id = ?" and returns
+# rows of other customers. search()->single keeps every condition.
+sub owned_row {
+    my ($c, $source, $id) = @_;
+    return undef unless defined $id && $id =~ /^\d+$/;
+    return $c->model($source)->search({
+        'me.customer' => $c->user->customer->id,
+        'me.id'       => $id,
+    })->single;
+}
+
 # Start the application
 __PACKAGE__->setup();
 
