@@ -23,7 +23,6 @@ use Catalyst qw/
 
     Authentication
     Session
-    Session::State::Header
     Session::State::Cookie
     Session::Store::FastMmap
 

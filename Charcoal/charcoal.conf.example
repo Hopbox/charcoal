@@ -50,8 +50,7 @@ default_view HTML
 </Plugin::Session::Store::Memcached::Fast>
 
 <Plugin::Session>
-	auth_header	X-Charcoal-Auth
-	allowed_uri	^/api/
+	cookie_secure 1
 </Plugin::Session>
 
 <Plugin::Static::Simple>

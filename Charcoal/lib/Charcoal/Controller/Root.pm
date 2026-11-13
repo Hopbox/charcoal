@@ -6,11 +6,6 @@ BEGIN { extends 'Catalyst::Controller' }
 
 __PACKAGE__->config(namespace => '');
 
-# --- CORS: Allowed origins for API requests ---
-my @ALLOWED_ORIGINS = qw(
-    https://my.charcoal.io
-);
-
 sub index : Path : Args(0){
         my ($self, $c) = @_;
         $c->response->redirect($c->uri_for('/login'));
@@ -28,27 +23,6 @@ sub auto : Private {
         return 1;
     }
 
-    # --- CORS handling for API routes ---
-    if ($c->request->path =~ /^api/) {
-        my $origin = $c->req->header('Origin') // '';
-        if (grep { $_ eq $origin } @ALLOWED_ORIGINS) {
-            $c->response->headers->header('Access-Control-Allow-Origin' => $origin);
-            $c->response->headers->header('Access-Control-Allow-Credentials' => 'true');
-        }
-        $c->response->headers->header('Access-Control-Allow-Headers' => 'content-type, x-charcoal-auth, x-csrf-token');
-        $c->response->headers->header('Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS');
-
-        # Preflight requests get an early return
-        if ($c->request->method eq 'OPTIONS') {
-            return 1;
-        }
-    }
-
-    # --- Allow unauthenticated access to API Login ---
-    if ($c->controller eq $c->controller('API::Login')) {
-        return 1;
-    }
-
     # --- Require authentication for everything else ---
     if ( !$c->user_exists || !$c->session ) {
         $c->log->debug('***Root::auto User/Session not found, forwarding to /login');
@@ -63,8 +37,8 @@ sub auto : Private {
     }
     $c->stash->{csrf_token} = $c->session->{csrf_token};
 
-    # --- CSRF: Validate on state-changing requests (skip API routes) ---
-    if ($c->req->method =~ /^(POST|PUT|DELETE)$/ && $c->req->path !~ /^api/) {
+    # --- CSRF: Validate on all state-changing requests ---
+    if ($c->req->method =~ /^(POST|PUT|DELETE)$/) {
         my $token = $c->req->param('csrf_token') // $c->req->header('X-CSRF-Token') // '';
         unless ($token eq $c->session->{csrf_token}) {
             $c->log->warn('CSRF validation failed for ' . $c->req->path);
