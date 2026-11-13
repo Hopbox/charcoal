@@ -34,13 +34,8 @@ default_view HTML
     </default>
 </Plugin::Authentication>
 
-<Plugin::Cache>
-    <backend>
-        class Cache::FastMmap
-        unlink_on_exit 1
-        share_file /tmp/charcoal_share
-    </backend>
-</Plugin::Cache>
+# Cache: configured in lib/Charcoal.pm (key "cache"). A <Plugin::Cache>
+# block here is ignored: that is the config of a different plugin.
 
 <Plugin::Session::Store::Memcached::Fast>
     <session>

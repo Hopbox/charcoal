@@ -57,6 +57,13 @@ __PACKAGE__->config(
     # Serve static files only from root/static. Without this, any file
     # with an extension under root/src or root/lib is served without login.
     'Plugin::Static::Simple' => { ignore_dirs => [ qw/src lib/ ] },
+    # Catalyst::Plugin::Cache::FastMmap ($c->cache): login rate-limit
+    # counters. A fixed file, so that script/charcoal_unblock.pl can find
+    # it. Without this, each start creates /tmp/sharefile-<pid>-<random>.
+    cache => {
+        storage        => '/tmp/charcoal_cache_data',
+        unlink_on_exit => 0,
+    },
 );
 
 # Return the row of $source with primary key $id ONLY if it belongs to the
