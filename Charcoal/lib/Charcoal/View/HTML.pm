@@ -2,6 +2,7 @@ package Charcoal::View::HTML;
 
 use strict;
 use base 'Catalyst::View::TT';
+use Template::AutoFilter;
 
 __PACKAGE__->config({
     INCLUDE_PATH => [
