@@ -71,7 +71,9 @@
 											
 											<a href="[% c.uri_for(c.controller.action_for('editgroup'), [grp.id]) %]" class="btn btn-primary btn-sm" role="button" title="Modify Name and Description of this Group">Modify Group</a>
 											
-                                            <a href="[% c.uri_for(c.controller.action_for('delgroup'), [grp.id]) %]" type="button" class="btn btn-danger btn-sm" title="Delete this Group">Delete Group</a>
+                                            <form method="POST" action="[% c.uri_for(c.controller.action_for('delgroup'), [grp.id]) %]" style="display:inline" data-confirm="Delete source group: [% grp.name %]?">
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Delete this Group">Delete Group</button>
+                                            </form>
                                             </td>
                                             
                                         </tr>

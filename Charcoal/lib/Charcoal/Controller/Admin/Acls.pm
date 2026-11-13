@@ -145,8 +145,8 @@ sub movedown :Chained('base') :PathPart('movedown') :Args(1) {
 sub list :Chained('base') :PathPart('list') :Args(0) {
     my ( $self, $c ) = @_;
 
-	my $page = $c->request->params->{page} || "";
-	$page = 1 if ( ( $page !~ /^\d+$/ ) or ( !$page ) );
+	my $page = $c->request->params->{page} // "";
+	$page = 1 unless $page =~ /^[1-9]\d*$/;
 
     my $acls = $c->model('PgDB::Acl')->search( { customer => $c->user->customer->id }, 
 														{ 

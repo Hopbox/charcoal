@@ -40,8 +40,8 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
 
 	my ( $self, $c ) = @_;
 	
-	my $page = $c->request->params->{page};
-	$page = 1 if ( ( $page !~ /^\d+$/ ) or ( !$page ) );
+	my $page = $c->request->params->{page} // "";
+	$page = 1 unless $page =~ /^[1-9]\d*$/;
 	
 	my $dstgroups = $c->model('PgDB::Category')->search({
 						customer => $c->user->customer->id,
@@ -93,6 +93,8 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 
 sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 	my ( $self, $c, $grp ) = @_;
+	$c->require_post;
+
 	
 	my $obj = $c->owned_row('PgDB::Category', $grp);
 	unless ($obj) {
@@ -194,6 +196,8 @@ sub addmember :Chained('base') :PathPart('addmember') :Args(1) {
 
 sub delmember :Chained('base') :PathPart('delmember') :Args(2){
 	my ( $self, $c, $dst, $grp ) = @_;
+	$c->require_post;
+
 	
 	$c->log->debug("DELMEM: Args: " . $dst . "," . $grp);
 	
@@ -221,8 +225,8 @@ sub delmember :Chained('base') :PathPart('delmember') :Args(2){
 sub listmembers :Chained('base') :PathPart('listmembers') :Args(1) {
     my ($self, $c, $gid) = @_;
 
-   	my $page = $c->request->params->{page};
-	$page = 1 if ( ( $page !~ /^\d+$/ ) or (!$page) );
+   	my $page = $c->request->params->{page} // "";
+	$page = 1 unless $page =~ /^[1-9]\d*$/;
 	
 	my $group = $c->owned_row('PgDB::Category', $gid);
 	$c->detach('/default') unless $group;
@@ -254,8 +258,8 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1) {
 sub list_grp :Chained('base') :PathPart('groups/list') :Args(0) {
 	my ($self, $c) = @_;
 	
-	my $page = $c->request->params->{page};
-	$page = 1 if ( ( $page !~ /^\d+$/ ) or ( !$page ) );
+	my $page = $c->request->params->{page} // "";
+	$page = 1 unless $page =~ /^[1-9]\d*$/;
 	
 	my $dstgroups = $c->model('PgDB::Category')->search({
 						customer => $c->user->customer->id,

@@ -61,8 +61,9 @@
                                     	<tr>
 											<td>[% destination.domain %]</td>
                                             <td style="width:40%">
-                                            <a href="[% c.uri_for(c.controller.action_for('delmember'), [destination.id, group.id]) %]"
-                                            <button type="button" class="btn btn-danger btn-sm" title="Delete this Destination">Delete</button></a>
+                                            <form method="POST" action="[% c.uri_for(c.controller.action_for('delmember'), [destination.id, group.id]) %]" style="display:inline" data-confirm="Delete domain: [% destination.domain %]?">
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Delete this Destination">Delete</button>
+                                            </form>
                                             </td>
                                         </tr>
                                     [% END %]

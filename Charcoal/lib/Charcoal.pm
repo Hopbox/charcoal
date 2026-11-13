@@ -75,6 +75,17 @@ sub owned_row {
     })->single;
 }
 
+# Stop the request with 405 unless it is a POST. Use in every action that
+# deletes or changes data, so that a link or <img> on another site cannot
+# trigger it (SameSite=Lax cookies are still sent on top-level GET).
+sub require_post {
+    my ($c) = @_;
+    return 1 if $c->req->method eq 'POST';
+    $c->res->status(405);
+    $c->res->body('Method not allowed');
+    $c->detach;
+}
+
 # Start the application
 __PACKAGE__->setup();
 

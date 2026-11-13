@@ -29,8 +29,8 @@ sub base :Chained('/admin/index') :PathPart('sourcegroups') :CaptureArgs(0) {}
 sub list :Chained('base') :PathPart('list') :Args(0){
     my ( $self, $c ) = @_;
 
-    my $page = $c->request->params->{page};
-	$page = 1 if ( ( $page !~ /^\d+$/ ) or ( !$page ) );
+    my $page = $c->request->params->{page} // "";
+	$page = 1 unless $page =~ /^[1-9]\d*$/;
 	
 	my $srcgroups = $c->model('PgDB::Group')->search({ 
 						customer => $c->user->customer->id 
@@ -121,6 +121,8 @@ sub editgroup_submit :Chained('base') :PathPart('editgroup_submit') :Args(1) {
 
 sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 	my ( $self, $c, $grp ) = @_;
+	$c->require_post;
+
 	
 	my $obj = $c->owned_row('PgDB::Group', $grp);
 	unless ($obj) {
@@ -186,8 +188,8 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 	my ($self, $c, $grp_id) = @_;
 		
-   	my $page = $c->request->params->{page};
-	$page = 1 if ( ( $page !~ /^\d+$/ ) or (!$page) );
+   	my $page = $c->request->params->{page} // "";
+	$page = 1 unless $page =~ /^[1-9]\d*$/;
 	
 	my $group = $c->owned_row('PgDB::Group', $grp_id);
 	$c->detach('/default') unless $group;
@@ -384,6 +386,8 @@ sub addmemberip :Chained('base') :PathPart('addmemberip') :Args(1){
 
 sub delmember :Chained('base') :PathPart('delmember') :Args(2){
 	my ( $self, $c, $src, $grp ) = @_;
+	$c->require_post;
+
 	
 	$c->log->debug("DELMEM: Args: " . $src . "," . $grp);
 	

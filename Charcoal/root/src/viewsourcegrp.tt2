@@ -223,7 +223,9 @@
 											<td>[% member.description %]</td>
                                             <td style="width: 40%">
 												<a href="[% c.uri_for(c.controller.action_for('editmember'), [member.id, group.id]) %]" type="button" class="btn btn-info btn-sm" title="Edit this Member">Modify Member Description</a>
-												<a href="[% c.uri_for(c.controller.action_for('delmember'), [member.id, group.id]) %]" type="button" class="btn btn-danger btn-sm" title="Delete this Member">Delete</a>
+												<form method="POST" action="[% c.uri_for(c.controller.action_for('delmember'), [member.id, group.id]) %]" style="display:inline" data-confirm="Delete member: [% member.value %]?">
+                                                <button type="submit" class="btn btn-danger btn-sm" title="Delete this Member">Delete</button>
+                                            </form>
                                             </td>
                                             
                                         </tr>
