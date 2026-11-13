@@ -21,7 +21,20 @@ Catalyst Controller.
 
 =cut
 
-sub base :Chained('/admin/index') :PathPart('destinationgroups') :CaptureArgs(0) {}
+sub base :Chained('/admin/index') :PathPart('destinationgroups') :CaptureArgs(0) {
+	my ($self, $c) = @_;
+
+	# Customer 1 owns the global categories. These pages manage only
+	# customer categories (c_domains / c_dom_cat). Global categories use
+	# other tables (domains / gl_dom_cat), and their "in use" check must
+	# look at the ACLs of all customers. Block customer 1 until that
+	# feature exists.
+	if ($c->user->customer->id == 1) {
+		$c->res->status(403);
+		$c->res->body('Forbidden: global categories cannot be managed here.');
+		$c->detach;
+	}
+}
 
 sub list :Chained('base') :PathPart('list') :Args(0) {
 

@@ -25,6 +25,39 @@ Catalyst Controller.
 
 sub base :Chained('/admin/index') :PathPart('acls') :CaptureArgs(0) {}
 
+# Check the values of a submitted ACL. Return an error text, or undef if all
+# values are valid.
+#   access: ALLOW or DENY
+#   src:    '0' (any), or source groups of this customer
+#   dst:    '0' (any), or categories of this customer or global (customer 1)
+sub _acl_input_error {
+    my ($c, $access, $src, $dst) = @_;
+    my $cid = $c->user->customer->id;
+
+    return "Invalid access value." unless defined $access && $access =~ /^(ALLOW|DENY)$/;
+
+    my %s = map { $_ => 1 } grep { $_ ne '0' } @$src;
+    my %d = map { $_ => 1 } grep { $_ ne '0' } @$dst;
+    return "Invalid source or destination group."
+        if grep { !/^\d+$/ } keys %s, keys %d;
+
+    if (%s) {
+        my $n = $c->model('PgDB::Group')->search({
+            'me.customer' => $cid,
+            'me.id'       => { -in => [ keys %s ] },
+        })->count;
+        return "Invalid source group." unless $n == keys %s;
+    }
+    if (%d) {
+        my $n = $c->model('PgDB::Category')->search({
+            'me.customer' => { -in => [ 1, $cid ] },
+            'me.id'       => { -in => [ keys %d ] },
+        })->count;
+        return "Invalid destination group." unless $n == keys %d;
+    }
+    return undef;
+}
+
 sub moveup :Chained('base') :PathPart('moveup') :Args(1) {
     
     my ( $self, $c, $acl_id ) = @_;
@@ -51,8 +84,11 @@ sub moveup :Chained('base') :PathPart('moveup') :Args(1) {
     
     if ($oneup){
         my $oneup_seq = $oneup->seq;
-        $oneup->update( {'seq' => $this_seq} );
-        $this_acl->update( {'seq' => $oneup_seq} );
+        # Both updates or none: never leave two rules with the same seq
+        $c->model('PgDB')->schema->txn_do(sub {
+            $oneup->update( {'seq' => $this_seq} );
+            $this_acl->update( {'seq' => $oneup_seq} );
+        });
         $c->flash->{status_msg} = "ACL rules reordered successfully.";
     }
     
@@ -86,8 +122,11 @@ sub movedown :Chained('base') :PathPart('movedown') :Args(1) {
     
     if ($onedown){
         my $onedown_seq = $onedown->seq;
-        $onedown->update( {'seq' => $this_seq} );
-        $this_acl->update( {'seq' => $onedown_seq} );
+        # Both updates or none: never leave two rules with the same seq
+        $c->model('PgDB')->schema->txn_do(sub {
+            $onedown->update( {'seq' => $this_seq} );
+            $this_acl->update( {'seq' => $onedown_seq} );
+        });
         $c->flash->{status_msg} = "ACL rules reordered successfully.";
     }
     $c->res->redirect($c->uri_for('list'));
@@ -265,6 +304,12 @@ sub create_submit :Chained('base') :PathPart('create_submit'): Args(0){
     @acl_src = "0" if ($acl_src_all);
     @acl_dst = "0" if ($acl_dst_all);
     @acl_times = "0";
+
+    if (my $err = _acl_input_error($c, $acl_access, \@acl_src, \@acl_dst)) {
+        $c->flash->{error_msg} = $err;
+        $c->res->redirect($c->uri_for('list'));
+        $c->detach;
+    }
 	
 	$c->log->debug("CREATE-SUBMIT ACL: acl_desc = " . $acl_desc . " CUST ID: " . $cust_id);
 	
@@ -524,6 +569,12 @@ sub edit_submit :Chained('base') :PathPart('edit_submit') :Args(0){
 		$c->res->redirect($c->uri_for('list'));
 		$c->detach;
 	}
+
+    if (my $err = _acl_input_error($c, $acl_access, \@acl_src, \@acl_dst)) {
+        $c->flash->{error_msg} = $err;
+        $c->res->redirect($c->uri_for('list'));
+        $c->detach;
+    }
 
     my %for_acl;
     

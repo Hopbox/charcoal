@@ -54,6 +54,9 @@ __PACKAGE__->config(
     # Disable deprecated behavior needed by old applications
     disable_component_resolution_regex_fallback => 1,
     enable_catalyst_header => 1, # Send X-Catalyst header
+    # Serve static files only from root/static. Without this, any file
+    # with an extension under root/src or root/lib is served without login.
+    'Plugin::Static::Simple' => { ignore_dirs => [ qw/src lib/ ] },
 );
 
 # Return the row of $source with primary key $id ONLY if it belongs to the

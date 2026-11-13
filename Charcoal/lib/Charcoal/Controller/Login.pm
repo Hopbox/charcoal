@@ -30,6 +30,10 @@ sub index :Path :Args(0) {
         $c->detach;
     }
     
+    # Show messages set by auth() before its redirect
+    $c->stash->{error_msg}  = delete $c->flash->{error_msg}  if exists $c->flash->{error_msg};
+    $c->stash->{status_msg} = delete $c->flash->{status_msg} if exists $c->flash->{status_msg};
+
     $c->stash->{submit_url} = $c->uri_for('auth');
     $c->stash->{template} = 'login.tt2';
 }
@@ -53,7 +57,7 @@ sub auth :Path('/login/auth') :Args(0) {
         } 
         else {
             # Set an error message
-            $c->stash->{error_msg} = "Bad username or password.";
+            $c->flash->{error_msg} = "Bad username or password.";
             $c->response->redirect($c->uri_for('/login'));
             $c->detach;
         }
@@ -61,7 +65,7 @@ sub auth :Path('/login/auth') :Args(0) {
 
     # If either of above don't work out, send to the login page
 #    $c->stash->{template} = 'login.tt2';
-    $c->stash->{error_msg} = "Bad username or password.";
+    $c->flash->{error_msg} = "Bad username or password.";
     $c->response->redirect($c->uri_for('/login'));
     $c->detach;
    
