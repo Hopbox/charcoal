@@ -34,7 +34,8 @@ requires 'Plack';
 requires 'Starman';
 
 requires 'DBIx::Class::TimeStamp';
-requires 'DBIx::Class::EncodedColumn';
+requires 'Crypt::Argon2';
+requires 'Digest::SHA';
 requires 'JSON::XS';
 requires 'Data::Validate::IP';
 requires 'Email::Valid';

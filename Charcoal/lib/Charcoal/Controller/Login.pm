@@ -68,7 +68,7 @@ sub auth :Path('/login/auth') :Args(0) {
     }
 
     if ($username ne '' && $password ne '') {
-        if ($c->authenticate({ username => $username, password => $password })) {
+        if ($c->authenticate({ username => $username, password => $password, active => 1 })) {
             $c->cache->remove($k_user);
 
             # New session ID and new CSRF token after login, so that a

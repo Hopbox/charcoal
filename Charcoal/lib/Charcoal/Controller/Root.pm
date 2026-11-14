@@ -30,6 +30,14 @@ sub auto : Private {
         return 0;
     }
 
+    # --- A user disabled while logged in (users.active != 1) is logged out ---
+    unless (($c->user->active // 0) == 1) {
+        $c->log->warn('Logged out disabled user ' . ($c->user->username // '?'));
+        $c->logout;
+        $c->response->redirect($c->uri_for('/login'));
+        return 0;
+    }
+
     # --- CSRF: Generate token if not present ---
     if (!$c->session->{csrf_token}) {
         my @chars = ('a'..'z', 'A'..'Z', '0'..'9');
