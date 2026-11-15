@@ -4,6 +4,8 @@ use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
+use Charcoal::Domain qw(normalize_domain);
+
 =head1 NAME
 
 Charcoal::Controller::Admin::Destinations - Catalyst Controller
@@ -174,8 +176,27 @@ sub addmember :Chained('base') :PathPart('addmember') :Args(1) {
 		$c->res->redirect($c->uri_for('list'));
 		$c->detach;
 	}
-	my $domain = $c->request->parameters->{membervalue};
-	
+	my $input  = $c->request->parameters->{membervalue} // '';
+	my $domain = normalize_domain($input);
+	unless ($domain) {
+		$c->flash->{error_msg} = "Not a valid domain name: $input";
+		$c->res->redirect($c->uri_for('listmembers', $category));
+		$c->detach;
+	}
+
+	# One c_domains row per category entry (delmember deletes the row), so
+	# the duplicate check is per category, not per customer.
+	my $exists = $c->model('PgDB::CDomCat')->search({
+		'me.category'     => $category,
+		'domain.domain'   => $domain,
+		'domain.customer' => $c->user->customer->id,
+	}, { join => 'domain' })->count;
+	if ($exists) {
+		$c->flash->{error_msg} = "$domain is already in this group.";
+		$c->res->redirect($c->uri_for('listmembers', $category));
+		$c->detach;
+	}
+
 	$c->log->debug("ADDDOMAIN: Attempting to add domain " . $domain);
 	
 	my $dom = $c->model('PgDB::CDomain')->create ({
@@ -189,7 +210,8 @@ sub addmember :Chained('base') :PathPart('addmember') :Args(1) {
                     category => $category
                             });
 			
-    $c->flash->{status_msg} = "$domain added successfully.";
+    $c->flash->{status_msg} = "$domain added successfully."
+        . ($input =~ /^\s*\Q$domain\E\s*$/ ? '' : " (entered as: $input)");
 	$c->res->redirect($c->uri_for('listmembers', $category));
 	$c->detach;
 }

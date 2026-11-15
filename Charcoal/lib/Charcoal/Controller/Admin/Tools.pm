@@ -2,6 +2,7 @@ package Charcoal::Controller::Admin::Tools;
 use Moose;
 use namespace::autoclean;
 use JSON::XS qw(decode_json);
+use Charcoal::Domain qw(normalize_domain search_levels);
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -13,32 +14,6 @@ Charcoal::Controller::Admin::Tools - Search Domain (and later Test ACL)
 
 sub base :Chained('/admin/index') :PathPart('tools') :CaptureArgs(0) {}
 
-# Turn user input into a host name.
-# Accepts "https://user@www.Example.com:443/path?x", "example.com.", " x.com ".
-# Returns undef if the result is not a valid host name.
-sub _normalize_domain {
-    my ($in) = @_;
-    my $d = lc($in // '');
-    $d =~ s/^\s+|\s+$//g;
-    $d =~ s{^[a-z][a-z0-9+.-]*://}{};   # scheme
-    $d =~ s{[/?#].*$}{};                 # path, query, fragment
-    $d =~ s{^[^@]*@}{};                  # user:password@
-    $d =~ s{:\d*$}{};                    # port
-    $d =~ s{\.+$}{};                     # trailing dot
-    return undef unless length $d && length $d <= 253;
-    return undef unless $d =~ /^[a-z0-9_-]+(?:\.[a-z0-9_-]+)*$/;
-    return $d;
-}
-
-# The same walk as charcoal-server:
-# www.a.example.com -> a.example.com -> example.com -> com
-sub _domain_levels {
-    my ($d) = @_;
-    my @levels = ($d);
-    push @levels, $d while $d =~ s/^[^.]*\.//;
-    return @levels;
-}
-
 sub search :Chained('base') :PathPart('search') :Args(0) {
     my ($self, $c) = @_;
 
@@ -47,12 +22,12 @@ sub search :Chained('base') :PathPart('search') :Args(0) {
     $c->stash->{q}        = $q;
     return if $q eq '';
 
-    my $domain = _normalize_domain($q);
+    my $domain = normalize_domain($q);
     unless ($domain) {
         $c->stash->{error_msg} = "Enter a domain name or a URL, for example www.example.com";
         return;
     }
-    my @levels = _domain_levels($domain);
+    my @levels = search_levels($domain);
     my %level_no; @level_no{@levels} = (0 .. $#levels);
     my $cid = $c->user->customer->id;
 
