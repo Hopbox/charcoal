@@ -1,0 +1,64 @@
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Search Domain</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            Find the categories that already contain a domain, and the rules that use them.
+                            <br/>Charcoal checks the full name first, then each parent domain:
+                            an entry for <code>example.com</code> also covers <code>www.example.com</code>.
+                        </div>
+                        <div class="panel-body">
+                            <form method="GET" action="[% c.uri_for('/admin/tools/search') %]" class="form-inline">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" name="q" value="[% q %]" size="50"
+                                           maxlength="2048" placeholder="www.example.com or a URL" autofocus>
+                                </div>
+                                <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"></span> Search</button>
+                            </form>
+
+                            [% IF domain %]
+                            <hr/>
+                            <p>Checked, in this order:
+                                [% FOREACH l IN levels %]<code>[% l %]</code>[% UNLESS loop.last %] &rarr; [% END %][% END %]
+                            </p>
+
+                            [% IF results.size %]
+                            <table class="table table-condensed table-striped">
+                                <thead>
+                                    <tr><th>Entry found</th><th>Category</th><th>Type</th><th>Used in your rules</th></tr>
+                                </thead>
+                                <tbody>
+                                [% FOREACH r IN results %]
+                                    <tr>
+                                        <td><code>[% r.matched %]</code>[% IF r.matched != domain %] <small class="text-muted">(parent domain)</small>[% END %]</td>
+                                        <td>[% IF r.members_url %]<a href="[% r.members_url %]">[% r.cat_name %]</a>[% ELSE %][% r.cat_name %][% END %]</td>
+                                        <td>[% IF r.is_global %]<span class="label label-default">Global</span>[% ELSE %]<span class="label label-primary">Own</span>[% END %]</td>
+                                        <td>
+                                        [% IF r.rules.size %]
+                                            [% FOREACH rule IN r.rules %]
+                                            <span class="label label-[% rule.access == 'ALLOW' ? 'success' : 'danger' %]">[% rule.access %]</span> [% rule.name %]<br/>
+                                            [% END %]
+                                        [% ELSE %]
+                                            <span class="text-muted">Not used</span>
+                                        [% END %]
+                                        </td>
+                                    </tr>
+                                [% END %]
+                                </tbody>
+                            </table>
+                            <p class="text-muted">To use a category for this domain, select it in an ACL rule. You do not need a new category.</p>
+                            [% ELSE %]
+                            <div class="alert alert-info">
+                                <code>[% domain %]</code> is not in any global category or in your own categories.
+                                Rules that use specific categories do not apply to it; rules with destination ALL do.
+                            </div>
+                            [% END %]
+                            [% END %]
+                        </div>
+                    </div>
+                </div>
+            </div>

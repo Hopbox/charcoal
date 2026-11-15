@@ -15,6 +15,11 @@
                         </div>
                         <!-- /.panel-heading -->
                         <div class="panel-body">
+                            <form method="GET" action="[% c.uri_for('/admin/tools/search') %]" class="form-inline" style="margin-bottom:12px">
+                                <label for="q">Is this domain already in a category?</label>
+                                <input type="text" class="form-control input-sm" id="q" name="q" size="35" placeholder="www.example.com">
+                                <button type="submit" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-search"></span> Search</button>
+                            </form>
 							<p>								
 								<button type="button" class="btn btn-success btn-sm" title="Add Destination Group" data-toggle="modal" data-target="#addGroupModal"><span class="glyphicon glyphicon-plus"></span> Add Group</button>
 								<!-- Modal -->

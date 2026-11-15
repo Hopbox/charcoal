@@ -38,6 +38,7 @@
 													<button type="submit" class="btn btn-success">Submit</button>
 													<button type="reset" class="btn btn-warning">Clear</button>
 												</form>
+												<p><a href="[% c.uri_for('/admin/tools/search') %]" target="_blank">Check if a domain is already in a category</a></p>
 											</div>
 											<div class="modal-footer">
 												<p>Enter a domain or TLD.<br/>(abc.xyz.com or xyz.com or com)</p>
