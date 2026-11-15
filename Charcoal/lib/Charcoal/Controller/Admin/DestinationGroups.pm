@@ -5,6 +5,7 @@ use namespace::autoclean;
 BEGIN { extends 'Catalyst::Controller'; }
 
 use Charcoal::Domain qw(normalize_domain);
+use Charcoal::Input qw(clean_text group_input_error);
 
 =head1 NAME
 
@@ -66,8 +67,16 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 	my ( $self, $c ) = @_;
 	$c->require_post;
 	
-	my $groupname = $c->request->params->{groupname};
-	my $groupdesc = $c->request->params->{groupdesc} || "No Description";
+	my $groupname = clean_text($c->request->params->{groupname});
+	my $groupdesc = clean_text($c->request->params->{groupdesc}) || "No Description";
+
+	# Unique among the customer's own groups (global groups are separate)
+	my $own = $c->model('PgDB::Category')->search({ 'me.customer' => $c->user->customer->id });
+	if (my $err = group_input_error($own, 'category', $groupname, $groupdesc)) {
+		$c->flash->{error_msg} = $err;
+		$c->res->redirect($c->uri_for('list'));
+		$c->detach;
+	}
 	
 	$c->log->debug("ADDCAT: Attempting to add category " . $groupname);
 	

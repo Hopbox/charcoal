@@ -4,6 +4,7 @@ use namespace::autoclean;
 
 use Data::Validate::IP qw(is_ipv4 is_innet_ipv4);
 use NetAddr::IP;
+use Charcoal::Input qw(clean_text group_input_error);
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -67,8 +68,15 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 	my ( $self, $c ) = @_;
 	$c->require_post;
 	
-	my $groupname = $c->request->params->{groupname};
-	my $groupdesc = $c->request->params->{groupdesc};
+	my $groupname = clean_text($c->request->params->{groupname});
+	my $groupdesc = clean_text($c->request->params->{groupdesc});
+
+	my $own = $c->model('PgDB::Group')->search({ 'me.customer' => $c->user->customer->id });
+	if (my $err = group_input_error($own, 'name', $groupname, $groupdesc)) {
+		$c->flash->{error_msg} = $err;
+		$c->res->redirect($c->uri_for('list'));
+		$c->detach;
+	}
 	
 	$c->log->debug("ADDGRP: Attempting to add group " . $groupname);
 	
@@ -79,6 +87,7 @@ sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 			});
 	
 	$c->log->debug("ADDGRP: Addition returned id " . $group->id);
+	$c->flash->{status_msg} = "Source Group $groupname added successfully.";
 			
 	$c->res->redirect($c->uri_for('list'));
 	$c->detach;
@@ -101,10 +110,17 @@ sub editgroup_submit :Chained('base') :PathPart('editgroup_submit') :Args(1) {
 	my ( $self, $c, $grp) = @_;
 	$c->require_post;
 	
-	my $groupname = $c->request->params->{groupname};
-	my $groupdesc = $c->request->params->{groupdesc};
+	my $groupname = clean_text($c->request->params->{groupname});
+	my $groupdesc = clean_text($c->request->params->{groupdesc});
 	
 	my $group = $c->owned_row('PgDB::Group', $grp);
+
+	my $own = $c->model('PgDB::Group')->search({ 'me.customer' => $c->user->customer->id });
+	if ($group and my $err = group_input_error($own, 'name', $groupname, $groupdesc, $group->id)) {
+		$c->flash->{error_msg} = $err;
+		$c->res->redirect($c->uri_for('editgroup', $grp));
+		$c->detach;
+	}
 	
 	if ($group) {
 		$group->update({ name => $groupname, description => $groupdesc });
@@ -247,14 +263,31 @@ sub addmembernet :Chained('base') :PathPart('addmembernet') :Args(1){
 	}
 	
 	my $type = 4;
-	my $network = $c->request->params->{network} || "";
-	my $prefix  = $c->request->params->{prefix} || "";
-	my $description = $c->request->params->{netmemdesc} || "";
-	
-	my $value = $network . "/" . $prefix;
-	
-	my $addr = NetAddr::IP->new( $value );
-	
+	my $network = clean_text($c->request->params->{network});
+	my $prefix  = clean_text($c->request->params->{prefix});
+	my $description = clean_text($c->request->params->{netmemdesc});
+	my $entered = "$network/$prefix";
+
+	# Only a dotted IPv4 address and a prefix 8..32. NetAddr::IP alone also
+	# accepts host names (with a DNS lookup), "default" and /0.
+	my $err;
+	$err = "$network is not a valid IPv4 address." unless is_ipv4($network);
+	$err ||= "Prefix must be a number from 8 to 32." unless $prefix =~ /^\d{1,2}$/ && $prefix >= 8 && $prefix <= 32;
+	$err ||= "Description: at most 128 characters." if length($description) > 128;
+
+	# Store the network address: 10.1.2.3/24 -> 10.1.2.0/24
+	my $addr  = $err ? undef : NetAddr::IP->new("$network/$prefix");
+	my $value = $addr ? $addr->network->cidr : $entered;
+
+	$err ||= "$value is already in this group." if $c->model('PgDB::Src')->search(
+		{ 'me.customer' => $c->user->customer->id, 'me.value' => $value, 'src_groups.grp' => $grp },
+		{ join => 'src_groups' })->count;
+
+	if ($err) {
+		$c->flash->{error_msg} = $err;
+		$c->res->redirect($c->uri_for('listmembers', $grp));
+		$c->detach;
+	}
 	
 	## Check if value is a valid SUBNET
 	
@@ -273,9 +306,10 @@ sub addmembernet :Chained('base') :PathPart('addmembernet') :Args(1){
 					grp	=>	$grp
 				});
 		
-		my $range = $addr->first() . "-" . $addr->last();
+		my $range = $addr->first->addr . " - " . $addr->last->addr;
 		
-		$c->flash->{status_msg} = "Network $value ( $range ) added successfully.";
+		$c->flash->{status_msg} = "Network $value ( $range ) added successfully."
+			. ($value eq $entered ? '' : " (entered as: $entered)");
 	
 	}
 	else {
@@ -303,12 +337,6 @@ sub editmember :Chained('base') :PathPart('editmember') :Args(2){
 	$c->detach('/default') unless $group && $member;
 	my $type = $member->src_type->type;
 	
-	if ( $type == "ip" ) {
-		$c->log->debug("EDITMEM: Type:" . $type );
-		my $value = $c->request->params->{editmemvalue} || "";
-		my $description = $c->request->params->{editmemdesc} || "";
-	}
-	
 	$c->stash->{type}			= $type;
 	$c->stash->{member}			= \%{$member};
 	$c->stash->{group}			= \%{$group};
@@ -321,18 +349,20 @@ sub editmember_submit :Chained('base') :PathPart('editmember_submit') :Args(2){
 	my ($self, $c, $src, $grp) = @_;
 	$c->require_post;
 
-	my $value = $c->request->params->{value};
-	my $description = $c->request->params->{desc};
+	my $description = clean_text($c->request->params->{desc});
 	
 	my $member = $c->owned_row('PgDB::Src', $src);
-	
-	if ($member) {
+
+	if ($member && length($description) > 128) {
+		$c->flash->{error_msg} = "Description: at most 128 characters.";
+	}
+	elsif ($member) {
 		$c->log->debug("EDITMEMSUBMIT: Member found " . $member->value);
 		$member->update( { description => $description } );
 		$c->flash->{status_msg} = "Member updated successfully.";
 	}
 	else {
-		$c->flash->{status_msg} = "Member with ID $src not found.";
+		$c->flash->{error_msg} = "Member not found.";
 	}
 	
 	$c->res->redirect($c->uri_for('listmembers', $grp));
@@ -349,10 +379,21 @@ sub addmemberip :Chained('base') :PathPart('addmemberip') :Args(1){
 		$c->detach;
 	}
 	
-	my $type = $c->request->params->{membertype} || "";
-	my $value = $c->request->params->{membervalue} || "";
-	my $description = $c->request->params->{ipmemdesc} || "";
-	
+	my $type = 2;    # IP. Not taken from the form: a hidden field can be changed.
+	my $value = clean_text($c->request->params->{membervalue});
+	my $description = clean_text($c->request->params->{ipmemdesc});
+
+	my $err;
+	$err = "$value is not a valid IP address." unless is_ipv4($value);
+	$err ||= "Description: at most 128 characters." if length($description) > 128;
+	$err ||= "$value is already in this group." if $c->model('PgDB::Src')->search(
+		{ 'me.customer' => $c->user->customer->id, 'me.value' => $value, 'src_groups.grp' => $grp },
+		{ join => 'src_groups' })->count;
+	if ($err) {
+		$c->flash->{error_msg} = $err;
+		$c->res->redirect($c->uri_for('listmembers', $grp));
+		$c->detach;
+	}
 	
 	## Check if value is a valid IP
 	
