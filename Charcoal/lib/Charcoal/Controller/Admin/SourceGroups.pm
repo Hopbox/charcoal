@@ -65,6 +65,7 @@ sub list :Chained('base') :PathPart('list') :Args(0){
 
 sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 	my ( $self, $c ) = @_;
+	$c->require_post;
 	
 	my $groupname = $c->request->params->{groupname};
 	my $groupdesc = $c->request->params->{groupdesc};
@@ -98,6 +99,7 @@ sub editgroup :Chained('base') :PathPart('editgroup') :Args(1) {
 
 sub editgroup_submit :Chained('base') :PathPart('editgroup_submit') :Args(1) {
 	my ( $self, $c, $grp) = @_;
+	$c->require_post;
 	
 	my $groupname = $c->request->params->{groupname};
 	my $groupdesc = $c->request->params->{groupdesc};
@@ -236,6 +238,7 @@ sub listmembers :Chained('base') :PathPart('listmembers') :Args(1){
 
 sub addmembernet :Chained('base') :PathPart('addmembernet') :Args(1){
 	my ($self, $c, $grp ) = @_;
+	$c->require_post;
 
 	unless ($c->owned_row('PgDB::Group', $grp)) {
 		$c->flash->{error_msg} = "Group not found.";
@@ -316,6 +319,7 @@ sub editmember :Chained('base') :PathPart('editmember') :Args(2){
 
 sub editmember_submit :Chained('base') :PathPart('editmember_submit') :Args(2){
 	my ($self, $c, $src, $grp) = @_;
+	$c->require_post;
 
 	my $value = $c->request->params->{value};
 	my $description = $c->request->params->{desc};
@@ -337,6 +341,7 @@ sub editmember_submit :Chained('base') :PathPart('editmember_submit') :Args(2){
 
 sub addmemberip :Chained('base') :PathPart('addmemberip') :Args(1){
 	my ($self, $c, $grp ) = @_;
+	$c->require_post;
 
 	unless ($c->owned_row('PgDB::Group', $grp)) {
 		$c->flash->{error_msg} = "Group not found.";

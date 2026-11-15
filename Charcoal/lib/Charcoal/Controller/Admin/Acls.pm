@@ -69,6 +69,7 @@ sub _acl_input_error {
 sub moveup :Chained('base') :PathPart('moveup') :Args(1) {
     
     my ( $self, $c, $acl_id ) = @_;
+    $c->require_post;
 
     ## Find the rule above this and swap SEQ
     
@@ -107,6 +108,7 @@ sub moveup :Chained('base') :PathPart('moveup') :Args(1) {
 sub movedown :Chained('base') :PathPart('movedown') :Args(1) {
 
     my ( $self, $c, $acl_id ) = @_;
+    $c->require_post;
 
     ## Find the rule below this and swap SEQ
     
@@ -298,6 +300,7 @@ sub create :Chained('base') :PathPart('create') :Args(0){
 sub create_submit :Chained('base') :PathPart('create_submit'): Args(0){
 	
 	my ($self, $c) = @_;
+	$c->require_post;
 	
 	my $cust_id = $c->user->customer->id;
 	
@@ -550,6 +553,7 @@ sub edit :Chained('base') :PathPart('edit') :Args(1){
 sub edit_submit :Chained('base') :PathPart('edit_submit') :Args(0){
 
 	my ($self, $c) = @_;
+	$c->require_post;
 	
 	my $cust_id = $c->user->customer->id;
 	my $acl_id = $c->req->params->{id} || "";

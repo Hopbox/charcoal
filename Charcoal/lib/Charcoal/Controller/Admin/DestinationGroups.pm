@@ -64,6 +64,7 @@ sub list :Chained('base') :PathPart('list') :Args(0) {
 
 sub addgroup :Chained('base') :PathPart('addgroup') :Args(0){
 	my ( $self, $c ) = @_;
+	$c->require_post;
 	
 	my $groupname = $c->request->params->{groupname};
 	my $groupdesc = $c->request->params->{groupdesc} || "No Description";
@@ -170,6 +171,7 @@ sub delgroup :Chained('base') :PathPart('delgroup') :Args(1){
 sub addmember :Chained('base') :PathPart('addmember') :Args(1) {
 
 	my ( $self, $c, $category ) = @_;
+	$c->require_post;
 
 	unless ($c->owned_row('PgDB::Category', $category)) {
 		$c->flash->{error_msg} = "Destination group not found.";
