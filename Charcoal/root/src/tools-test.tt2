@@ -50,7 +50,12 @@
                             [% END %]
 
                             <h3>Why</h3>
-                            [% IF server_verdict && server_verdict != explain.access %]
+                            [% IF threat %]
+                            <div class="alert alert-danger">
+                                Blocked by the threat feed <strong>[% threat %]</strong>: the site is on a list of known dangerous sites.
+                                This check runs after the rules, also when a rule allows the site.
+                            </div>
+                            [% ELSIF server_verdict && server_verdict != explain.access %]
                             <div class="alert alert-warning">
                                 The explanation below gives <strong>[% explain.access %]</strong>; the server answer <strong>[% server_verdict %]</strong> applies.
                                 A recent rule change can cause this.
@@ -62,15 +67,20 @@
                                 <strong>[% explain.rule.name %]</strong> (position [% explain.rule.seq %])
                                 [% IF explain.type == 'DEFAULT' %]
                                     &mdash; the default rule: no other rule matched.
-                                [% ELSE %]
-                                    &mdash; matched for <code>[% explain.level %]</code>.
                                 [% END %]
                             </p>
+                            [% IF explain.type == 'SPECIFIC' %]
+                            <p>
+                                Source: [% IF explain.via_src %]group <strong>[% explain.via_src %]</strong>[% ELSE %]<strong>ALL</strong>[% END %]
+                                &middot; Destination: [% IF explain.via_dst %]group <strong>[% explain.via_dst.name %]</strong>, which contains <code>[% explain.via_dst.at %]</code>[% ELSE %]<strong>ALL</strong>[% END %]
+                            </p>
+                            <p class="text-muted"><small>Charcoal checks every part of the name and collects all destination groups, then the first rule from the top that matches applies.</small></p>
+                            [% END %]
                             [% ELSE %]
                             <div class="alert alert-danger">Your rules have no default rule (source ALL and destination ALL). Requests that match no rule are blocked.</div>
                             [% END %]
 
-                            <p>Checked, in this order: [% FOREACH l IN explain.walk %]<code>[% l %]</code>[% UNLESS loop.last %] &rarr; [% END %][% END %]</p>
+                            <p>Names checked: [% FOREACH l IN explain.walk %]<code>[% l %]</code>[% UNLESS loop.last %] &rarr; [% END %][% END %]</p>
 
                             <h4>Source groups that contain [% form.ip %][% IF form.user %] or user [% form.user %][% END %]</h4>
                             [% IF explain.groups.size %]
