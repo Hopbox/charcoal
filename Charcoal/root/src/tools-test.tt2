@@ -48,13 +48,12 @@
                             [% ELSE %]
                                 <div class="alert alert-warning">[% server_error %]</div>
                             [% END %]
-                            <p class="text-muted"><small>Server: [% server_name %]. Request: <code>[% request_line %]</code>[% IF server_reply %] Reply: <code>[% server_reply %]</code>[% END %]</small></p>
 
                             <h3>Why</h3>
                             [% IF server_verdict && server_verdict != explain.access %]
                             <div class="alert alert-warning">
-                                The portal computes <strong>[% explain.access %]</strong>, but charcoal-server answered <strong>[% server_verdict %]</strong>.
-                                Possible reasons: a rule changed a few seconds ago, or the server uses a newer decision logic. The server answer applies.
+                                The explanation below gives <strong>[% explain.access %]</strong>; the server answer <strong>[% server_verdict %]</strong> applies.
+                                A recent rule change can cause this.
                             </div>
                             [% END %]
                             [% IF explain.rule %]
@@ -98,6 +97,17 @@
                             [% ELSE %]
                                 <p class="text-muted">None. Only rules with destination ALL can apply.</p>
                             [% END %]
+
+                            <p><a data-toggle="collapse" href="#techDetails" aria-expanded="false" aria-controls="techDetails">
+                                <span class="glyphicon glyphicon-wrench"></span> Technical details</a></p>
+                            <div class="collapse" id="techDetails">
+                                <table class="table table-condensed">
+                                    <tr><th style="width:10em">Server</th><td><code>[% server_name %]</code></td></tr>
+                                    <tr><th>Request</th><td><code style="word-break:break-all">[% request_line %]</code></td></tr>
+                                    <tr><th>Reply</th><td>[% IF server_reply %]<code style="word-break:break-all">[% server_reply %]</code>[% ELSE %]<span class="text-muted">none</span>[% END %]</td></tr>
+                                    [% IF server_verdict %][% IF server_error %]<tr><th>Error</th><td>[% server_error %]</td></tr>[% END %][% END %]
+                                </table>
+                            </div>
                             [% END %]
                         </div>
                     </div>
