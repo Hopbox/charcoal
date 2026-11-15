@@ -50,6 +50,7 @@
                             <a href="#"><i class="fa fa-wrench fa-fw"></i> Tools<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li><a href="[% c.uri_for('/admin/tools/search') %]"><i class="fa fa-search fa-fw"></i> Search Domain</a></li>
+                                <li><a href="[% c.uri_for('/admin/tools/test') %]"><i class="fa fa-check-square-o fa-fw"></i> Test ACL</a></li>
                             </ul>
                         </li>
                         

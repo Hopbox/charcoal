@@ -18,6 +18,7 @@
                         <div class="panel-body">
                             <div align="left">								
 								<p><a href="[% create_url %]" class="btn btn-success btn-sm" role="button" title="New Rule"><span class="glyphicon glyphicon-plus"></span> Add Rule</a>
+								<a href="[% c.uri_for('/admin/tools/test') %]" class="btn btn-default btn-sm" role="button" title="Test a request against these rules"><span class="glyphicon glyphicon-play"></span> Test a URL</a>
 								</p>
                             </div>
                             <div class="dataTable_wrapper">

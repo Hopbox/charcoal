@@ -1,0 +1,105 @@
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Test ACL</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            Check what Charcoal does with a request: enter the source IP address of a device and a site.
+                            <br/>The test asks charcoal-server, like the proxy does. After a rule change, the proxies can use
+                            the old answer for up to 5 minutes, and the servers can be a few seconds behind.
+                        </div>
+                        <div class="panel-body">
+                            <form method="GET" action="[% c.uri_for('/admin/tools/test') %]" class="form-horizontal">
+                                <div class="form-group">
+                                    <label for="ip" class="col-sm-2 control-label">Source IP</label>
+                                    <div class="col-sm-4"><input type="text" class="form-control" id="ip" name="ip" value="[% form.ip %]" placeholder="10.0.0.25" required></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="user" class="col-sm-2 control-label">User</label>
+                                    <div class="col-sm-4"><input type="text" class="form-control" id="user" name="user" value="[% form.user %]" placeholder="optional"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="url" class="col-sm-2 control-label">Site</label>
+                                    <div class="col-sm-6"><input type="text" class="form-control" id="url" name="url" value="[% form.url %]" placeholder="www.example.com or a URL" required></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Protocol</label>
+                                    <div class="col-sm-6">
+                                        <label class="radio-inline"><input type="radio" name="proto" value="https" [% IF form.proto != 'http' %]checked[% END %]> HTTPS</label>
+                                        <label class="radio-inline"><input type="radio" name="proto" value="http" [% IF form.proto == 'http' %]checked[% END %]> HTTP</label>
+                                        <span class="help-block">A URL that starts with http:// or https:// sets the protocol.</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-6">
+                                        <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> Test</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            [% IF tested %]
+                            <hr/>
+                            <h3>Answer from charcoal-server</h3>
+                            [% IF server_verdict %]
+                                <p><span class="label label-[% server_verdict == 'ALLOW' ? 'success' : 'danger' %]" style="font-size:150%">[% server_verdict %]</span></p>
+                            [% ELSE %]
+                                <div class="alert alert-warning">[% server_error %]</div>
+                            [% END %]
+                            <p class="text-muted"><small>Server: [% server_name %]. Request: <code>[% request_line %]</code>[% IF server_reply %] Reply: <code>[% server_reply %]</code>[% END %]</small></p>
+
+                            <h3>Why</h3>
+                            [% IF server_verdict && server_verdict != explain.access %]
+                            <div class="alert alert-warning">
+                                The portal computes <strong>[% explain.access %]</strong>, but charcoal-server answered <strong>[% server_verdict %]</strong>.
+                                Possible reasons: a rule changed a few seconds ago, or the server uses a newer decision logic. The server answer applies.
+                            </div>
+                            [% END %]
+                            [% IF explain.rule %]
+                            <p>
+                                Rule: <span class="label label-[% explain.access == 'ALLOW' ? 'success' : 'danger' %]">[% explain.access %]</span>
+                                <strong>[% explain.rule.name %]</strong> (position [% explain.rule.seq %])
+                                [% IF explain.type == 'DEFAULT' %]
+                                    &mdash; the default rule: no other rule matched.
+                                [% ELSE %]
+                                    &mdash; matched for <code>[% explain.level %]</code>.
+                                [% END %]
+                            </p>
+                            [% ELSE %]
+                            <div class="alert alert-danger">Your rules have no default rule (source ALL and destination ALL). Requests that match no rule are blocked.</div>
+                            [% END %]
+
+                            <p>Checked, in this order: [% FOREACH l IN explain.walk %]<code>[% l %]</code>[% UNLESS loop.last %] &rarr; [% END %][% END %]</p>
+
+                            <h4>Source groups that contain [% form.ip %][% IF form.user %] or user [% form.user %][% END %]</h4>
+                            [% IF explain.groups.size %]
+                                <ul>[% FOREACH g IN explain.groups %]<li><a href="[% c.uri_for('/admin/sourcegroups/listmembers', g.id) %]">[% g.name %]</a> <small class="text-muted">(entry [% g.value %])</small></li>[% END %]</ul>
+                            [% ELSE %]
+                                <p class="text-muted">None. Only rules with source ALL can apply.</p>
+                            [% END %]
+
+                            <h4>Destination groups that contain the site</h4>
+                            [% IF categories.size %]
+                            <table class="table table-condensed table-striped">
+                                <thead><tr><th>Entry found</th><th>Group</th><th>Type</th><th>Used in your rules</th></tr></thead>
+                                <tbody>
+                                [% FOREACH r IN categories %]
+                                    <tr>
+                                        <td><code>[% r.matched %]</code></td>
+                                        <td>[% IF r.members_url %]<a href="[% r.members_url %]">[% r.cat_name %]</a>[% ELSE %][% r.cat_name %][% END %]</td>
+                                        <td>[% IF r.is_global %]<span class="label label-default">Global</span>[% ELSE %]<span class="label label-primary">Own</span>[% END %]</td>
+                                        <td>[% IF r.rules.size %][% FOREACH rule IN r.rules %]<span class="label label-[% rule.access == 'ALLOW' ? 'success' : 'danger' %]">[% rule.access %]</span> [% rule.name %]<br/>[% END %][% ELSE %]<span class="text-muted">Not used</span>[% END %]</td>
+                                    </tr>
+                                [% END %]
+                                </tbody>
+                            </table>
+                            [% ELSE %]
+                                <p class="text-muted">None. Only rules with destination ALL can apply.</p>
+                            [% END %]
+                            [% END %]
+                        </div>
+                    </div>
+                </div>
+            </div>
