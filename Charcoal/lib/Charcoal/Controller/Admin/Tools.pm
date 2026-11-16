@@ -208,14 +208,21 @@ sub test :Chained('base') :PathPart('test') :Args(0) {
     $c->stash->{server_name}    = $self->charcoal_host . ':' . $self->charcoal_port;
 }
 
-# The Charcoal decision (charcoal-server 2.0.7 logic), on the portal's database:
-#   1. source groups of the IP / user
-#   2. walk the WHOLE domain (www.a.example.com -> a.example.com -> example.com
-#      -> com) and collect the destination groups of every name
-#   3. first rule by position that matches:
-#        (source group AND destination group) OR (ALL AND destination group)
-#        OR (source group AND ALL)
-#   4. else the default rule (ALL -> ALL, last position)
+# The Charcoal decision, as production charcoal-server 1.0.0 makes it
+# (check_acl), on the portal's database:
+#   1. default rule: the last rule with source ALL and destination ALL
+#   2. source groups: IP inside IP / network entries; user = exact value.
+#      No source group -> the source list is '0' (ALL).
+#   3. for each name (www.a.example.com -> a.example.com -> example.com -> com):
+#      - skip the name if there are no source groups and it has no categories
+#      - destination list: categories of this name are APPENDED to the list
+#        of earlier names; a name without categories REPLACES it with '0'
+#      - collect every rule (except the default rule) where
+#          (src in list AND dst in list) OR (src ALL AND dst in list)
+#          OR (src in list AND dst ALL)
+#   4. of all collected rules and the default rule, the lowest position wins
+#   5. hopbox.in is always allowed
+# Keep in step with the server; Test ACL warns when its answer differs.
 sub _explain {
     my ($c, $ip, $user, $dst) = @_;
     my $cid = $c->user->customer->id;
@@ -223,8 +230,9 @@ sub _explain {
     my @walk = ($dst);
     { my $d = $dst; push @walk, $d while $d =~ s/^.*?\.//; }
 
-    (my $short = $user) =~ s/\@.*$//;
-    $short =~ s/^.*\\//;
+    return { walk => \@walk, groups => [], type => 'BUILTIN', access => 'ALLOW',
+             rule => { name => 'hopbox.in is always allowed', seq => '-' } }
+        if $dst =~ /hopbox\.in/;
 
     return $c->model('PgDB')->storage->dbh_do(sub {
         my (undef, $dbh) = @_;
@@ -237,45 +245,40 @@ sub _explain {
              ORDER BY seq DESC LIMIT 1
         }, undef, $cid);
 
-        # Source groups: same rules as charcoal-server 2.0.7 ($sth_src_match)
-        my $o = '(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])';
-        my $groups = $dbh->selectall_arrayref(qq{
+        # 1.0.0: types 2, 3, 4 by IP (only valid IP / network values can be
+        # compared here; ranges are not created yet), and any entry whose
+        # value equals the user name exactly.
+        my $groups = $dbh->selectall_arrayref(q{
             SELECT DISTINCT gr.id, gr.name, s.value
               FROM src s
               JOIN src_groups g ON g.member = s.id
               JOIN groups gr    ON gr.id = g.grp
-             WHERE s.customer = ? AND CASE
-               WHEN s.src_type IN (2, 4) AND s.value ~ '^($o\\.){3}$o(/(3[0-2]|[12]?[0-9]))?\$'
-                 THEN ?::inet <<= s.value::inet
-               WHEN s.src_type = 3 AND s.value ~ '^($o\\.){3}$o-($o\\.){3}$o\$'
-                 THEN ?::inet BETWEEN split_part(s.value, '-', 1)::inet AND split_part(s.value, '-', 2)::inet
-               WHEN s.src_type = 1 AND ? <> ''
-                 THEN lower(s.value) IN (lower(?), lower(?))
-               ELSE false END
+             WHERE s.customer = ?
+               AND (CASE WHEN s.src_type IN (2, 4)
+                          AND s.value ~ '^\d{1,3}(\.\d{1,3}){3}(/\d{1,2})?$'
+                         THEN ?::inet <<= s.value::inet ELSE false END
+                    OR (? <> '' AND s.value = ?))
              ORDER BY gr.name
-        }, { Slice => {} }, $cid, $ip, $ip, $user, $user, $short);
+        }, { Slice => {} }, $cid, $ip, $user, $user);
         my @gids = do { my %u; grep { !$u{$_}++ } map { "$_->{id}" } @$groups };
+        my @src  = @gids ? @gids : ('0');
 
-        # Destination groups of every name in the walk; remember the most
-        # specific name where each group was found
-        my (%found_at, @cats);
+        my (%found_at, %hit, @dstlist);
         for my $level (@walk) {
             my $cats = $dbh->selectcol_arrayref(q{
                 SELECT category FROM gl_dom_cat
                  WHERE domain IN (SELECT id FROM domains WHERE domain = ?)
-                UNION
+                UNION ALL
                 SELECT category FROM c_dom_cat
                  WHERE domain IN (SELECT id FROM c_domains WHERE customer = ? AND domain = ?)
             }, undef, $level, $cid, $level);
-            for (@$cats) { next if exists $found_at{$_}; $found_at{$_} = $level; push @cats, "$_"; }
-        }
+            my @cats = map { "$_" } @$cats;
+            next if !@gids && !@cats;
 
-        my %result = (walk => \@walk, groups => $groups, default => $default);
+            $found_at{$_} //= $level for @cats;
+            @dstlist = @cats ? (@dstlist, @cats) : ('0');
 
-        if (@gids || @cats) {
-            my @g = @gids ? @gids : ('dummy');
-            my @k = @cats ? @cats : ('dummy');
-            my $rule = $dbh->selectrow_hashref(q{
+            my $rules = $dbh->selectall_arrayref(q{
                 SELECT id, acl->>'desc' AS name, seq, acl->>'access' AS access,
                        acl->'src' AS src, acl->'dst' AS dst
                   FROM acls
@@ -283,26 +286,28 @@ sub _explain {
                    AND (    jsonb_exists_any(acl->'src', ?) AND jsonb_exists_any(acl->'dst', ?)
                         OR (jsonb_exists_any(acl->'src', array['0']) AND jsonb_exists_any(acl->'dst', ?))
                         OR (jsonb_exists_any(acl->'src', ?) AND jsonb_exists_any(acl->'dst', array['0'])))
-                 ORDER BY seq ASC LIMIT 1
-            }, undef, $cid, ($default ? $default->{seq} : undef), \@g, \@k, \@k, \@g);
+            }, { Slice => {} }, $cid, ($default ? $default->{seq} : -1),
+               \@src, \@dstlist, \@dstlist, \@src);
+            $hit{ $_->{seq} } //= { %$_, level => $level } for @$rules;
+        }
 
-            if ($rule) {
-                my $rsrc = eval { decode_json($rule->{src}) } || [];
-                my $rdst = eval { decode_json($rule->{dst}) } || [];
-                my %gset = map { $_ => 1 } @gids;
-                my ($via_dst) = grep { exists $found_at{$_} } @$rdst;    # destination group that matched
-                my $via_name;
-                if (defined $via_dst) {
-                    $via_name = $dbh->selectrow_array('SELECT category FROM categories WHERE id = ?', undef, $via_dst);
-                }
-                my ($via_src) = grep { $gset{$_} } @$rsrc;
-                my $via_src_name = defined $via_src
-                    ? (map { $_->{name} } grep { "$_->{id}" eq $via_src } @$groups)[0] : undef;
-                return { %result, rule => $rule, type => 'SPECIFIC',
-                         access   => ($rule->{access} // '') eq 'ALLOW' ? 'ALLOW' : 'DENY',
-                         via_dst  => (defined $via_dst ? { name => $via_name, at => $found_at{$via_dst} } : undef),
-                         via_src  => $via_src_name };
-            }
+        my %result = (walk => \@walk, groups => $groups, default => $default);
+        my ($first) = sort { $a <=> $b } keys %hit;
+
+        if (defined $first && (!$default || $first < $default->{seq})) {
+            my $rule = $hit{$first};
+            my %gset = map { $_ => 1 } @gids;
+            my $rsrc = eval { decode_json($rule->{src}) } || [];
+            my $rdst = eval { decode_json($rule->{dst}) } || [];
+            my ($via_src) = grep { $gset{$_} } @$rsrc;
+            my ($via_dst) = grep { exists $found_at{$_} } @$rdst;
+            return { %result, rule => $rule, type => 'SPECIFIC', level => $rule->{level},
+                     access  => ($rule->{access} // '') eq 'ALLOW' ? 'ALLOW' : 'DENY',
+                     via_src => (defined $via_src
+                         ? (map { $_->{name} } grep { "$_->{id}" eq $via_src } @$groups)[0] : undef),
+                     via_dst => (defined $via_dst ? {
+                         name => scalar $dbh->selectrow_array('SELECT category FROM categories WHERE id = ?', undef, $via_dst),
+                         at   => $found_at{$via_dst} } : undef) };
         }
         return { %result, rule => $default, type => 'DEFAULT',
                  access => ($default && ($default->{access} // '') eq 'ALLOW') ? 'ALLOW' : 'DENY' };

@@ -74,7 +74,13 @@
                                 Source: [% IF explain.via_src %]group <strong>[% explain.via_src %]</strong>[% ELSE %]<strong>ALL</strong>[% END %]
                                 &middot; Destination: [% IF explain.via_dst %]group <strong>[% explain.via_dst.name %]</strong>, which contains <code>[% explain.via_dst.at %]</code>[% ELSE %]<strong>ALL</strong>[% END %]
                             </p>
-                            <p class="text-muted"><small>Charcoal checks every part of the name and collects all destination groups, then the first rule from the top that matches applies.</small></p>
+                            [% IF !explain.via_src && !explain.via_dst %]
+                            <div class="alert alert-danger">
+                                This rule has source <strong>ALL</strong> and destination <strong>ALL</strong>. It matches almost every request,
+                                so the rules below position [% explain.rule.seq %] rarely apply. If this is not intended, edit the rule and select its groups.
+                            </div>
+                            [% END %]
+                            <p class="text-muted"><small>Charcoal checks every part of the name. Of all rules that match any part, the one highest in the list applies.</small></p>
                             [% END %]
                             [% ELSE %]
                             <div class="alert alert-danger">Your rules have no default rule (source ALL and destination ALL). Requests that match no rule are blocked.</div>
